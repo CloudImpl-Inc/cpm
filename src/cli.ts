@@ -1,6 +1,6 @@
 import figlet from 'figlet';
 import {Command} from "commander";
-import {config} from ".";
+import {config, CPMPlugin} from ".";
 
 console.log(figlet.textSync('cpm'));
 
@@ -12,8 +12,12 @@ program
 
 // Register plugins
 config.plugins.forEach(async p => {
-    const plugin = (await import(p)).default;
-    program.addCommand(plugin);
+    const plugin = ((await import(p)).default as CPMPlugin);
+    console.log(`registering plugin: ${plugin.name()}`)
+    plugin.commands().forEach(c => {
+        program.addCommand(c);
+        console.log(`command registered: ${c.name()}`)
+    });
 })
 
 program.parse(process.argv);
