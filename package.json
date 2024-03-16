@@ -1,5 +1,5 @@
 {
-  "name": "@randilfernando/cpm",
+  "name": "@cloudimpl-inc/cpm",
   "version": "1.0.0",
   "description": "CloudImpl Project Manager",
   "main": "dist/index.js",
@@ -7,8 +7,7 @@
     "cpm": "./dist/bin/cpm.js"
   },
   "scripts": {
-    "build": "npx tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc"
   },
   "keywords": [
     "cli",
@@ -17,8 +16,8 @@
   ],
   "author": "Randil Fernando",
   "license": "MIT",
-  "repository": "https://github.com/randilfernando/cpm",
-  "homepage": "https://github.com/randilfernando/cpm#readme",
+  "repository": "https://github.com/cloudimpl-inc/cpm",
+  "homepage": "https://github.com/cloudimpl-inc/cpm#readme",
   "dependencies": {
     "commander": "^12.0.0",
     "figlet": "^1.7.0"
