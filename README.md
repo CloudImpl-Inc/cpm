@@ -17,7 +17,7 @@ Then you can test changes realtime.
 
 ### Example project
 To test how to develop plugins and to check how to use cli tool 
-go to [cpm-plugins-example](https://github.com/CloudImpl-Inc/cpm-plugins-example)
+go to [cpm-plugins-example](https://github.com/CloudImpl-Inc/cpm-example)
 
 ## Usage
 Currently, not deployed to npm. After deploying can install as a normal npm package
