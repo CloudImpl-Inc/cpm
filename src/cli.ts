@@ -2,8 +2,6 @@ import figlet from 'figlet';
 import {Command} from "commander";
 import {config, CPMPlugin} from ".";
 
-console.log(figlet.textSync('cpm'));
-
 const program = new Command();
 
 program
@@ -20,8 +18,17 @@ config.plugins.forEach(async p => {
     });
 })
 
-program.parse(process.argv);
+program
+    .on('command:*', function () {
+        console.error('Unknown command: %s\n\n' +
+            'See --help for a list of available commands\n' +
+            'Or you may have a missing plugin.\n\n' +
+            'Dont worry we will fix this together ;)', program.args.join(' '));
+        process.exit(1);
+    })
+    .parse(process.argv);
 
 if (!process.argv.slice(2).length) {
+    console.log(figlet.textSync('cpm'));
     program.outputHelp();
 }

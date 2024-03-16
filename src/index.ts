@@ -1,10 +1,10 @@
-import cosmiconfig from "cosmiconfig";
 import {Command} from "commander";
+import {readFileSync} from "fs";
 
 export interface CPMPlugin {
     name(): string;
     commands(): Command[]
 }
 
-// @ts-ignore
-export const config: {plugins: string[]} = cosmiconfig('cpm');
+const data = readFileSync(`${process.cwd()}/cpm.json`);
+export const config: {plugins: string[]} = JSON.parse(data.toString());

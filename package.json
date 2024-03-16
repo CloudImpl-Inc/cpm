@@ -21,7 +21,6 @@
   "homepage": "https://github.com/randilfernando/cpm#readme",
   "dependencies": {
     "commander": "^12.0.0",
-    "cosmiconfig": "^9.0.0",
     "figlet": "^1.7.0"
   },
   "devDependencies": {
