@@ -11,7 +11,7 @@ const listAction: CommandAction = input => {
         .filter(orgDir => orgDir.isDirectory())
         .forEach(orgDir => {
             console.log(`|--${orgDir.name}`)
-            readdirSync(orgDir.path, { withFileTypes: true })
+            readdirSync(`${orgDir.path}/${orgDir.name}`, { withFileTypes: true })
                 .filter(repoDir => repoDir.isDirectory())
                 .map(repoDir => repoDir.name)
                 .forEach(repoName => console.log(`|  |--${repoName}`))

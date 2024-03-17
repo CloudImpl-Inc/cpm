@@ -22,8 +22,6 @@ const run = async () => {
 
     // Register actions
     for (const p of config.plugins) {
-        console.log(`registering plugin: ${p}`)
-
         const pluginCreator = ((await import(`${process.cwd()}/node_modules/${p}`)).default as CPMPluginCreator);
 
         const ctx: CPMPluginContext = {
@@ -44,7 +42,6 @@ const run = async () => {
     for (const init of commands) {
         const commands = await init(actions);
         commands.forEach(c => {
-            console.log(`registering command ${c.name}`)
             program.addCommand(c);
         });
     }
