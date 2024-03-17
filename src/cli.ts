@@ -4,6 +4,7 @@ import {ActionInput, CPMPluginContext, CPMPluginCreator} from ".";
 import {addMapKey, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
 import commands from './commands';
 import {existsSync} from "fs";
+import * as os from "os";
 
 const getPluginSecrets = (secrets: any, name: string) => {
     return computeIfNotExist(secrets, name, {});
@@ -15,21 +16,44 @@ const run = async () => {
         .description("CloudImpl project manager | Your partner in project managing");
 
     const cwd = process.cwd();
-    const config: Record<string, any> = Object.freeze(readJson(`${cwd}/cpm.json`, {}));
+
+    const globalConfig: Record<string, any> = Object.freeze(readJson(`${os.homedir()}/.cpm/cpm.json`, {}))
+    const localConfig: Record<string, any> = Object.freeze(readJson(`${cwd}/cpm.json`, {}));
+
+    const globalSecrets = readJson(`${os.homedir()}/.cpm/secrets.json`, {})
+    let localSecrets;
+
     const actions: Record<string, any> = {};
-    let secrets;
+
+    // Register global actions
+    for (const p of globalConfig.plugins) {
+        const pluginCreator = ((await import(`${os.homedir()}/.cpm/node_modules/${p}`)).default as CPMPluginCreator);
+
+        const ctx: CPMPluginContext = {
+            config: globalConfig,
+            secrets: getPluginSecrets(globalSecrets, p),
+        }
+
+        const plugin = await pluginCreator(ctx);
+        Object.keys(plugin.actions).forEach(command => {
+            const key = command.split(' ');
+            const action = plugin.actions[command];
+            const commandAction = (input: ActionInput) => action(ctx, input);
+            addMapKey(actions, key, commandAction);
+        })
+    }
 
     if (existsSync(`${cwd}/cpm.json`)) {
         createFolder(`${cwd}/.cpm`);
-        secrets = readJson(`${cwd}/.cpm/secrets.json`, {})
+        localSecrets = readJson(`${cwd}/.cpm/secrets.json`, {})
 
         // Register actions
-        for (const p of config.plugins) {
+        for (const p of localConfig.plugins) {
             const pluginCreator = ((await import(`${cwd}/node_modules/${p}`)).default as CPMPluginCreator);
 
             const ctx: CPMPluginContext = {
-                config,
-                secrets: getPluginSecrets(secrets, p),
+                config: localConfig,
+                secrets: getPluginSecrets(localSecrets, p),
             }
 
             const plugin = await pluginCreator(ctx);
@@ -60,8 +84,8 @@ const run = async () => {
         })
         .parse(process.argv);
 
-    if (secrets !== undefined) {
-        writeJson(`${cwd}/.cpm/secrets.json`, secrets);
+    if (existsSync(`${cwd}/cpm.json`)) {
+        writeJson(`${cwd}/.cpm/secrets.json`, localSecrets);
     }
 
     if (!process.argv.slice(2).length) {
