@@ -26,3 +26,13 @@ export type CPMPlugin = {
 }
 
 export type CPMPluginCreator = (ctx: CPMPluginContext) => CPMPlugin | Promise<CPMPlugin>;
+
+export type WorkflowStep = {
+    id: string;
+    run: string;
+}
+
+export type Workflow = {
+    args: string[];
+    steps: WorkflowStep[];
+}

@@ -1,7 +1,7 @@
 import figlet from 'figlet';
 import {Command} from "commander";
-import {ActionInput, CPMPluginContext, CPMPluginCreator} from ".";
-import {addMapKey, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
+import {ActionInput, CPMPluginContext, CPMPluginCreator, Workflow} from ".";
+import {addMapKey, CommandAction, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
 import commands from './commands';
 import {existsSync} from "fs";
 import * as os from "os";
@@ -20,13 +20,13 @@ const run = async () => {
     const globalConfig: Record<string, any> = Object.freeze(readJson(`${os.homedir()}/.cpm/cpm.json`, {}))
     const localConfig: Record<string, any> = Object.freeze(readJson(`${cwd}/cpm.json`, {}));
 
-    const globalSecrets = readJson(`${os.homedir()}/.cpm/secrets.json`, {})
-    let localSecrets;
+    const globalSecrets: Record<string, any> = readJson(`${os.homedir()}/.cpm/secrets.json`, {})
+    let localSecrets: Record<string, any> = {};
 
     const actions: Record<string, any> = {};
 
     // Register global actions
-    for (const p of globalConfig.plugins) {
+    for (const p of (globalConfig.plugins as string)) {
         const pluginCreator = ((await import(`${os.homedir()}/.cpm/node_modules/${p}`)).default as CPMPluginCreator);
 
         const ctx: CPMPluginContext = {
@@ -38,7 +38,14 @@ const run = async () => {
         Object.keys(plugin.actions).forEach(command => {
             const key = command.split(' ');
             const action = plugin.actions[command];
-            const commandAction = (input: ActionInput) => action(ctx, input);
+            const commandAction: CommandAction = async (input: ActionInput) => {
+                const result = await action(ctx, input);
+                const outputPath = process.env.OUTPUT;
+
+                if (outputPath && outputPath !== '') {
+                    writeJson(outputPath, result)
+                }
+            }
             addMapKey(actions, key, commandAction);
         })
     }
@@ -48,7 +55,7 @@ const run = async () => {
         localSecrets = readJson(`${cwd}/.cpm/secrets.json`, {})
 
         // Register actions
-        for (const p of localConfig.plugins) {
+        for (const p of (localConfig.plugins as string)) {
             const pluginCreator = ((await import(`${cwd}/node_modules/${p}`)).default as CPMPluginCreator);
 
             const ctx: CPMPluginContext = {
@@ -60,9 +67,21 @@ const run = async () => {
             Object.keys(plugin.actions).forEach(command => {
                 const key = command.split(' ');
                 const action = plugin.actions[command];
-                const commandAction = (input: ActionInput) => action(ctx, input);
+                const commandAction = async (input: ActionInput) => {
+                    const result = await action(ctx, input);
+                    const outputPath = process.env.OUTPUT;
+
+                    if (outputPath && outputPath !== '') {
+                        writeJson(outputPath, result)
+                    }
+                }
                 addMapKey(actions, key, commandAction);
             })
+        }
+
+        // Register workflows
+        for (const w of (localConfig.workflows as Workflow[])) {
+
         }
     }
 

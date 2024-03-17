@@ -1,5 +1,5 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, ActionOutput} from "./index";
+import {ActionInput, Workflow} from "./index";
 import {Command} from "commander";
 
 export const createFolder = (path: string): void => {
@@ -48,14 +48,16 @@ export const addMapKey = (map: any, key: string[], value: any): void => {
     }
 }
 
-export const executeCommand = (action: CommandAction, input: ActionInput) => {
+export const executeCommand = async (action: CommandAction, input: ActionInput) => {
     if (action !== undefined) {
-        return action(input);
+        await action(input);
     } else {
         throw Error('command implementation not found');
     }
 }
 
-export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
+export type CommandAction = (input: ActionInput) => void | Promise<void>;
 
 export type CommandInit = (actions: Record<string, any>) => Command[] | Promise<Command[]>;
+
+export type WorkflowInit = (workflow: Workflow) => Command[] | Promise<Command[]>;
