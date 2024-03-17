@@ -1,7 +1,7 @@
 import {CommandInit, computeIfNotExist, executeCommand} from "../util";
 import {Command} from "commander";
 
-const init: CommandInit = (program, actions) => {
+const init: CommandInit = actions => {
     const m = computeIfNotExist(actions, 'task', {})
     const task = new Command('task');
 
@@ -22,6 +22,8 @@ const init: CommandInit = (program, actions) => {
             const action = computeIfNotExist(m, 'checkout', undefined)
             await executeCommand(action, {args: {id}, options: {}})
         });
+
+    return task;
 }
 
 export default init;

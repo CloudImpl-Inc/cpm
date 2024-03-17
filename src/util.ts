@@ -58,4 +58,4 @@ export const executeCommand = (action: CommandAction, input: ActionInput) => {
 
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
 
-export type CommandInit = (program: Command, actions: Record<string, any>) => void | Promise<void>;
+export type CommandInit = (actions: Record<string, any>) => Command | Promise<Command>;
