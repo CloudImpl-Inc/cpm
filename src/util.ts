@@ -6,23 +6,31 @@ export const createFolder = (path: string) => {
     }
 }
 
-export const readJson = (path: string, def: () => any): any => {
+export const readJson = (path: string, def: any | (() => any)): any => {
     if (existsSync(path)) {
         const data = readFileSync(path);
         return JSON.parse(data.toString());
     } else {
-        return def();
+        if (typeof def === 'function') {
+            return def();
+        } else {
+            return def;
+        }
     }
 }
 
 export const writeJson = (path: string, obj: any) => {
-    const json = JSON.stringify(obj);
+    const json = JSON.stringify(obj, null, 4);
     writeFileSync(path, Buffer.from(json))
 }
 
-export const computeIfNotExist = (map: any, key: string, value: (k: string) => any): any => {
+export const computeIfNotExist = (map: any, key: string, value: any | ((k: string) => any)): any => {
     if (!map[key]) {
-        map[key] = value(key);
+        if (typeof value === 'function') {
+            map[key] = value(key);
+        } else {
+            map[key] = value;
+        }
     }
 
     return map[key];

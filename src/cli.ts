@@ -4,10 +4,10 @@ import {config, CPMPluginContext, CPMPluginCreator} from ".";
 import {computeIfNotExist, createFolder, readJson, writeJson} from "./util";
 
 createFolder(`${process.cwd()}/.cpm`);
-const secrets = readJson(`${process.cwd()}/.cpm/secrets.json`, () => {});
+const secrets = readJson(`${process.cwd()}/.cpm/secrets.json`, {});
 
 const getPluginSecrets = (name: string) => {
-    return computeIfNotExist(secrets, name, k => {});
+    return computeIfNotExist(secrets, name, {});
 }
 
 const program = new Command()
@@ -25,6 +25,8 @@ const loadPlugins = async () => {
             config,
             secrets: getPluginSecrets(p),
         }
+
+        console.log(JSON.stringify(ctx));
 
         const plugin = await pluginCreator(ctx);
         plugin.commands().forEach(c => {
