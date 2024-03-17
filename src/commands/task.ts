@@ -10,7 +10,7 @@ const init: CommandInit = actions => {
         .description('list tasks')
         .action(async () => {
             const action = computeIfNotExist(m, 'list', undefined)
-            await executeCommand(action, {args: {}, options: {}})
+            await executeCommand(action, {args: {}, options: {}}, [])
         });
 
     task
@@ -18,7 +18,7 @@ const init: CommandInit = actions => {
         .description('get task with id')
         .action(async (id) => {
             const action = computeIfNotExist(m, 'get', undefined)
-            await executeCommand(action, {args: {id}, options: {}})
+            await executeCommand(action, {args: {id}, options: {}}, ['id', 'title']);
         });
 
     task
@@ -26,7 +26,7 @@ const init: CommandInit = actions => {
         .description('update task status with id')
         .action(async (id, status) => {
             const action = computeIfNotExist(m, 'update-status', undefined)
-            await executeCommand(action, {args: {id, status}, options: {}})
+            await executeCommand(action, {args: {id, status}, options: {}}, []);
         });
 
     return [task];

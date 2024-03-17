@@ -10,7 +10,7 @@ const init: CommandInit = actions => {
         .description('clone project repository')
         .action(async (url) => {
             const action = computeIfNotExist(m, 'clone', undefined)
-            await executeCommand(action, {args: {url}, options: {}})
+            await executeCommand(action, {args: {url}, options: {}}, ['org', 'repo'])
         });
 
     repo
@@ -19,7 +19,7 @@ const init: CommandInit = actions => {
         .option('-b, --branch <branch>')
         .action(async (options) => {
             const action = computeIfNotExist(m, 'checkout', undefined)
-            await executeCommand(action, {args: {}, options})
+            await executeCommand(action, {args: {}, options}, [])
         });
 
     return [repo];
