@@ -2,6 +2,10 @@ import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, Workflow} from "./index";
 import {Command} from "commander";
 
+export const cwd = process.cwd();
+
+export const stepOutput = `${cwd}/.cpm/output.json`;
+
 export const createFolder = (path: string): void => {
     if (!existsSync(path)){
         mkdirSync(path);
@@ -54,6 +58,16 @@ export const executeCommand = async (action: CommandAction, input: ActionInput) 
     } else {
         throw Error('command implementation not found');
     }
+}
+
+export const parseShellCommand = (cmd: string, params: any): string => {
+    // ToDo: Implement shell command parse, Replace placeholders with actual value from params
+    return cmd;
+}
+
+export const executeShellCommand = (cmd: string) => {
+    // ToDo: Implement shell command execution
+    console.log(`exec: ${cmd}`);
 }
 
 export type CommandAction = (input: ActionInput) => void | Promise<void>;

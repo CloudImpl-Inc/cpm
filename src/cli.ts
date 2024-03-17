@@ -1,7 +1,7 @@
 import figlet from 'figlet';
 import {Command} from "commander";
 import {ActionInput, CPMPluginContext, CPMPluginCreator, Workflow} from ".";
-import {addMapKey, CommandAction, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
+import {addMapKey, CommandAction, computeIfNotExist, createFolder, cwd, readJson, writeJson} from "./util";
 import commands from './commands';
 import {existsSync} from "fs";
 import * as os from "os";
@@ -15,8 +15,6 @@ const run = async () => {
     const program = new Command()
         .version("1.0.0")
         .description("CloudImpl project manager | Your partner in project managing");
-
-    const cwd = process.cwd();
 
     const globalConfig: Record<string, any> = Object.freeze(readJson(`${os.homedir()}/.cpm/cpm.json`, {}))
     const localConfig: Record<string, any> = Object.freeze(readJson(`${cwd}/cpm.json`, {}));
