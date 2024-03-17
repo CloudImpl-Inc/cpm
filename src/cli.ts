@@ -1,21 +1,34 @@
 import figlet from 'figlet';
 import {Command} from "commander";
-import {config, CPMPlugin} from ".";
+import {config, CPMPluginContext, CPMPluginCreator} from ".";
+import {computeIfNotExist, createFolder, readJson, writeJson} from "./util";
 
-const program = new Command();
+createFolder(`${process.cwd()}/.cpm`);
+const secrets = readJson(`${process.cwd()}/.cpm/secrets.json`, () => {});
 
-program
+const getPluginSecrets = (name: string) => {
+    return computeIfNotExist(secrets, name, k => {});
+}
+
+const program = new Command()
     .version("1.0.0")
     .description("CloudImpl project manager | Your partner in project managing");
 
 const loadPlugins = async () => {
     // Register plugins
     for (const p of config.plugins) {
-        const plugin = ((await import(`${process.cwd()}/node_modules/${p}`)).default as CPMPlugin);
-        console.log(`registering plugin: ${plugin.name()}`)
+        console.log(`registering plugin: ${p}`)
+
+        const pluginCreator = ((await import(`${process.cwd()}/node_modules/${p}`)).default as CPMPluginCreator);
+
+        const ctx: CPMPluginContext = {
+            config,
+            secrets: getPluginSecrets(p),
+        }
+
+        const plugin = await pluginCreator(ctx);
         plugin.commands().forEach(c => {
             program.addCommand(c);
-            console.log(`command registered: ${c.name()}`)
         });
     }
 
@@ -31,6 +44,8 @@ const loadPlugins = async () => {
 }
 
 loadPlugins().then(() => {
+    writeJson(`${process.cwd()}/.cpm/secrets.json`, secrets);
+
     if (!process.argv.slice(2).length) {
         console.log(figlet.textSync('cpm'));
         program.outputHelp();
