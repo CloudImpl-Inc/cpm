@@ -23,7 +23,7 @@ const init: CommandInit = actions => {
             await executeCommand(action, {args: {id}, options: {}})
         });
 
-    return task;
+    return [task];
 }
 
 export default init;

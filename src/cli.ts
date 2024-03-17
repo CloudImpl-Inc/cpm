@@ -41,9 +41,12 @@ const run = async () => {
     }
 
     // Register commands
-    for (const c of commands) {
-        const command = await c(actions);
-        program.addCommand(command);
+    for (const init of commands) {
+        const commands = await init(actions);
+        commands.forEach(c => {
+            console.log(`registering command ${c.name}`)
+            program.addCommand(c);
+        });
     }
 
     program
