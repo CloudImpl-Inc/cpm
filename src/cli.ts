@@ -37,14 +37,7 @@ const run = async () => {
         Object.keys(plugin.actions).forEach(command => {
             const key = command.split(' ');
             const action = plugin.actions[command];
-            const commandAction: CommandAction = async (input: ActionInput) => {
-                const result = await action(ctx, input);
-                const outputPath = process.env.OUTPUT;
-
-                if (outputPath && outputPath !== '') {
-                    writeJson(outputPath, result)
-                }
-            }
+            const commandAction: CommandAction = async (input: ActionInput) => await action(ctx, input);
             addMapKey(actions, key, commandAction);
         })
     }
@@ -66,14 +59,7 @@ const run = async () => {
             Object.keys(plugin.actions).forEach(command => {
                 const key = command.split(' ');
                 const action = plugin.actions[command];
-                const commandAction = async (input: ActionInput) => {
-                    const result = await action(ctx, input);
-                    const outputPath = process.env.OUTPUT;
-
-                    if (outputPath && outputPath !== '') {
-                        writeJson(outputPath, result)
-                    }
-                }
+                const commandAction = async (input: ActionInput) => await action(ctx, input);
                 addMapKey(actions, key, commandAction);
             })
         }

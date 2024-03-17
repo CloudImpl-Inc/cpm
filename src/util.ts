@@ -1,6 +1,7 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, Workflow} from "./index";
+import {ActionInput, ActionOutput, Workflow} from "./index";
 import {Command} from "commander";
+import {execSync} from "child_process";
 
 export const cwd = process.cwd();
 
@@ -52,9 +53,16 @@ export const addMapKey = (map: any, key: string[], value: any): void => {
     }
 }
 
-export const executeCommand = async (action: CommandAction, input: ActionInput) => {
+export const executeCommand = async (action: CommandAction, input: ActionInput, outputKeys: string[]) => {
     if (action !== undefined) {
-        await action(input);
+        const result = await action(input);
+        const filteredResult: ActionOutput = {};
+        outputKeys.forEach(k => filteredResult[k] = result[k]);
+
+        const stepOutput = process.env.OUTPUT;
+        if (stepOutput && stepOutput !== '') {
+            writeJson(stepOutput, filteredResult);
+        }
     } else {
         throw Error('command implementation not found');
     }
@@ -62,15 +70,16 @@ export const executeCommand = async (action: CommandAction, input: ActionInput) 
 
 export const parseShellCommand = (cmd: string, params: any): string => {
     // ToDo: Implement shell command parse, Replace placeholders with actual value from params
+    console.log(`cmd: ${cmd}, params: ${JSON.stringify(params)}`);
     return cmd;
 }
 
 export const executeShellCommand = (cmd: string) => {
-    // ToDo: Implement shell command execution
     console.log(`exec: ${cmd}`);
+    execSync(cmd, {env: {OUTPUT: stepOutput}});
 }
 
-export type CommandAction = (input: ActionInput) => void | Promise<void>;
+export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
 
 export type CommandInit = (actions: Record<string, any>) => Command[] | Promise<Command[]>;
 
