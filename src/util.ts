@@ -1,6 +1,8 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
+import {ActionInput, ActionOutput} from "./index";
+import {Command} from "commander";
 
-export const createFolder = (path: string) => {
+export const createFolder = (path: string): void => {
     if (!existsSync(path)){
         mkdirSync(path);
     }
@@ -19,7 +21,7 @@ export const readJson = (path: string, def: any | (() => any)): any => {
     }
 }
 
-export const writeJson = (path: string, obj: any) => {
+export const writeJson = (path: string, obj: any): void => {
     const json = JSON.stringify(obj, null, 4);
     writeFileSync(path, Buffer.from(json))
 }
@@ -35,3 +37,25 @@ export const computeIfNotExist = (map: any, key: string, value: any | ((k: strin
 
     return map[key];
 }
+
+export const addMapKey = (map: any, key: string[], value: any): void => {
+    if (key.length == 1) {
+        map[key[0]] = value;
+    } else {
+        const m = computeIfNotExist(map, key[0], {});
+        key.shift();
+        addMapKey(m, key, value);
+    }
+}
+
+export const executeCommand = (action: CommandAction, input: ActionInput) => {
+    if (action !== undefined) {
+        return action(input);
+    } else {
+        throw Error('command implementation not found');
+    }
+}
+
+export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
+
+export type CommandInit = (program: Command, actions: Record<string, any>) => void | Promise<void>;

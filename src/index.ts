@@ -1,17 +1,28 @@
-import {Command} from "commander";
-import {readFileSync} from "fs";
+export type CPMConfig = Record<string, any>;
 
-export interface CPMPlugin {
-    commands(): Command[]
+export type CPMPluginSecrets = Record<string, string>;
+
+export type CPMPluginContext = {
+    config: CPMConfig,
+    secrets: CPMPluginSecrets,
 }
 
-export interface CPMPluginContext {
-    config: Record<string, any>
-    secrets: Record<string, string>
+export type ActionArgs = Record<string, any>;
+
+export type ActionOptions = Record<string, any>;
+
+export type ActionInput = {
+    args: ActionArgs,
+    options: ActionOptions,
+}
+
+export type ActionOutput = Record<string, string>;
+
+export type Action = (ctx: CPMPluginContext, input: ActionInput) => ActionOutput | Promise<ActionOutput>;
+
+export type CPMPlugin = {
+    name: string,
+    actions: Record<string, Action>,
 }
 
 export type CPMPluginCreator = (ctx: CPMPluginContext) => CPMPlugin | Promise<CPMPlugin>;
-
-const data = readFileSync(`${process.cwd()}/cpm.json`);
-
-export const config: {plugins: string[]} = Object.freeze(JSON.parse(data.toString()));
