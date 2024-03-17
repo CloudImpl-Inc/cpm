@@ -13,16 +13,8 @@ const listAction: CommandAction = input => {
             console.log(`|--${orgDir.name}`)
             readdirSync(`${orgDir.path}/${orgDir.name}`, { withFileTypes: true })
                 .filter(repoDir => repoDir.isDirectory())
-                .map(repoDir => repoDir.name)
-                .forEach(repoName => console.log(`|  |--${repoName}`))
+                .forEach(repoDir => console.log(`|  |--${repoDir.name} => ${repoDir.path}/${repoDir.name}`))
         })
-
-    return {};
-}
-
-const cdAction: CommandAction = input => {
-    const path = input.args.path;
-    process.chdir(`${rootDir}/${path}`);
 
     return {};
 }
@@ -34,13 +26,7 @@ const init: CommandInit = actions => {
             await executeCommand(listAction, {args: {}, options: {}})
         });
 
-    const cd = new Command('cd')
-        .description('go to project folder')
-        .action(async (path) => {
-            await executeCommand(cdAction, {args: {path}, options: {}})
-        });
-
-    return [ls, cd];
+    return [ls];
 }
 
 export default init;

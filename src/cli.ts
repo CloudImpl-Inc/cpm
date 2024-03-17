@@ -3,39 +3,43 @@ import {Command} from "commander";
 import {ActionInput, CPMPluginContext, CPMPluginCreator} from ".";
 import {addMapKey, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
 import commands from './commands';
+import {existsSync} from "fs";
 
 const getPluginSecrets = (secrets: any, name: string) => {
     return computeIfNotExist(secrets, name, {});
 }
 
 const run = async () => {
-    const config: Record<string, any> = Object.freeze(readJson(`${process.cwd()}/cpm.json`, {}));
-
-    createFolder(`${process.cwd()}/.cpm`);
-    const secrets = readJson(`${process.cwd()}/.cpm/secrets.json`, {});
-
     const program = new Command()
         .version("1.0.0")
         .description("CloudImpl project manager | Your partner in project managing");
 
+    const cwd = process.cwd();
+    const config: Record<string, any> = Object.freeze(readJson(`${cwd}/cpm.json`, {}));
     const actions: Record<string, any> = {};
+    let secrets;
 
-    // Register actions
-    for (const p of config.plugins) {
-        const pluginCreator = ((await import(`${process.cwd()}/node_modules/${p}`)).default as CPMPluginCreator);
+    if (existsSync(`${cwd}/cpm.json`)) {
+        createFolder(`${cwd}/.cpm`);
+        secrets = readJson(`${cwd}/.cpm/secrets.json`, {})
 
-        const ctx: CPMPluginContext = {
-            config,
-            secrets: getPluginSecrets(secrets, p),
+        // Register actions
+        for (const p of config.plugins) {
+            const pluginCreator = ((await import(`${cwd}/node_modules/${p}`)).default as CPMPluginCreator);
+
+            const ctx: CPMPluginContext = {
+                config,
+                secrets: getPluginSecrets(secrets, p),
+            }
+
+            const plugin = await pluginCreator(ctx);
+            Object.keys(plugin.actions).forEach(command => {
+                const key = command.split(' ');
+                const action = plugin.actions[command];
+                const commandAction = (input: ActionInput) => action(ctx, input);
+                addMapKey(actions, key, commandAction);
+            })
         }
-
-        const plugin = await pluginCreator(ctx);
-        Object.keys(plugin.actions).forEach(command => {
-          const key = command.split(' ');
-          const action = plugin.actions[command];
-          const commandAction = (input: ActionInput) => action(ctx, input);
-          addMapKey(actions, key, commandAction);
-        })
     }
 
     // Register commands
@@ -56,7 +60,9 @@ const run = async () => {
         })
         .parse(process.argv);
 
-    writeJson(`${process.cwd()}/.cpm/secrets.json`, secrets);
+    if (secrets !== undefined) {
+        writeJson(`${cwd}/.cpm/secrets.json`, secrets);
+    }
 
     if (!process.argv.slice(2).length) {
         console.log(figlet.textSync('cpm'));
