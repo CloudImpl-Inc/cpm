@@ -26,8 +26,6 @@ const loadPlugins = async () => {
             secrets: getPluginSecrets(p),
         }
 
-        console.log(JSON.stringify(ctx));
-
         const plugin = await pluginCreator(ctx);
         plugin.commands().forEach(c => {
             program.addCommand(c);
