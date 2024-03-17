@@ -5,6 +5,7 @@ import {addMapKey, CommandAction, computeIfNotExist, createFolder, readJson, wri
 import commands from './commands';
 import {existsSync} from "fs";
 import * as os from "os";
+import WorkflowInit from "./workflow";
 
 const getPluginSecrets = (secrets: any, name: string) => {
     return computeIfNotExist(secrets, name, {});
@@ -26,7 +27,7 @@ const run = async () => {
     const actions: Record<string, any> = {};
 
     // Register global actions
-    for (const p of (globalConfig.plugins as string)) {
+    for (const p of globalConfig.plugins) {
         const pluginCreator = ((await import(`${os.homedir()}/.cpm/node_modules/${p}`)).default as CPMPluginCreator);
 
         const ctx: CPMPluginContext = {
@@ -55,7 +56,7 @@ const run = async () => {
         localSecrets = readJson(`${cwd}/.cpm/secrets.json`, {})
 
         // Register actions
-        for (const p of (localConfig.plugins as string)) {
+        for (const p of localConfig.plugins) {
             const pluginCreator = ((await import(`${cwd}/node_modules/${p}`)).default as CPMPluginCreator);
 
             const ctx: CPMPluginContext = {
@@ -78,11 +79,6 @@ const run = async () => {
                 addMapKey(actions, key, commandAction);
             })
         }
-
-        // Register workflows
-        for (const w of (localConfig.workflows as Workflow[])) {
-
-        }
     }
 
     // Register commands
@@ -91,6 +87,15 @@ const run = async () => {
         commands.forEach(c => {
             program.addCommand(c);
         });
+    }
+
+    if (existsSync(`${cwd}/cpm.json`)) {
+        // Register workflows
+        for (const name of Object.keys(localConfig.workflows)) {
+            const w: Workflow = localConfig.workflows[name];
+            const c = await WorkflowInit(name, w)
+            program.addCommand(c);
+        }
     }
 
     program

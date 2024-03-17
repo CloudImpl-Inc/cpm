@@ -60,4 +60,4 @@ export type CommandAction = (input: ActionInput) => void | Promise<void>;
 
 export type CommandInit = (actions: Record<string, any>) => Command[] | Promise<Command[]>;
 
-export type WorkflowInit = (workflow: Workflow) => Command[] | Promise<Command[]>;
+export type WorkflowInit = (name: string, workflow: Workflow) => Command | Promise<Command>;
