@@ -1,15 +1,12 @@
 import figlet from 'figlet';
 import {Command} from "commander";
 import {ActionInput, CPMPluginContext, CPMPluginCreator} from ".";
-import {addMapKey, CommandInit, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
-import Task from './commands/task';
+import {addMapKey, computeIfNotExist, createFolder, readJson, writeJson} from "./util";
+import commands from './commands';
 
 const getPluginSecrets = (secrets: any, name: string) => {
     return computeIfNotExist(secrets, name, {});
 }
-
-// Available commands
-const commands: CommandInit[] = [Task];
 
 const run = async () => {
     const config: Record<string, any> = Object.freeze(readJson(`${process.cwd()}/cpm.json`, {}));
