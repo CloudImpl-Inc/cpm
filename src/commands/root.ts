@@ -7,7 +7,7 @@ const globalConfig: Record<string, any> = Object.freeze(readJson(`${os.homedir()
 const rootDir = globalConfig.rootDir;
 
 const init: CommandInit = actions => {
-    const list = new Command('list')
+    const ls = new Command('ls')
         .description('list projects')
         .action(async () => {
             readdirSync(rootDir, { withFileTypes: true })
@@ -20,7 +20,14 @@ const init: CommandInit = actions => {
                 })
         });
 
-    return [list];
+    const cd = new Command('cd')
+        .argument('<path>')
+        .description('go to project directory')
+        .action(async (path) => {
+            process.chdir(path);
+        });
+
+    return [ls, cd];
 }
 
 export default init;

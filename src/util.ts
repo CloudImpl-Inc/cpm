@@ -43,6 +43,16 @@ export const computeIfNotExist = (map: any, key: string, value: any | ((k: strin
     return map[key];
 }
 
+export const getMapKey = (map: any, key: string[]): any => {
+    if (key.length == 1) {
+        return map[key[0]];
+    } else {
+        const m = map[key[0]];
+        key.shift();
+        return getMapKey(m, key);
+    }
+}
+
 export const addMapKey = (map: any, key: string[], value: any): void => {
     if (key.length == 1) {
         map[key[0]] = value;
@@ -69,14 +79,33 @@ export const executeCommand = async (action: CommandAction, input: ActionInput, 
 }
 
 export const parseShellCommand = (cmd: string, params: any): string => {
-    // ToDo: Implement shell command parse, Replace placeholders with actual value from params
-    console.log(`cmd: ${cmd}, params: ${JSON.stringify(params)}`);
-    return cmd;
+    let updatedCmd = cmd;
+    let start = updatedCmd.indexOf('{{', 0);
+
+    while (start !== -1) {
+        const end = updatedCmd.indexOf('}}', start);
+        const placeHolder = updatedCmd.substring(start, end + 2);
+        updatedCmd = fillPlaceHolder(updatedCmd, placeHolder, params);
+        start = updatedCmd.indexOf('{{', 0);
+    }
+
+    return updatedCmd;
+}
+
+export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): string => {
+    const key = placeHolder
+        .replace('{{', '')
+        .replace('}}', '')
+        .split('.');
+
+    const param = getMapKey(params, key);
+    return cmd.replace(placeHolder, param);
 }
 
 export const executeShellCommand = (cmd: string) => {
-    console.log(`exec: ${cmd}`);
-    execSync(cmd, {env: {OUTPUT: stepOutput}});
+    console.log(cmd);
+    const buffer = execSync(cmd, {env: {...process.env, OUTPUT: stepOutput}});
+    console.log(buffer.toString());
 }
 
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;

@@ -6,7 +6,7 @@ const init: CommandInit = actions => {
     const task = new Command('task');
 
     task
-        .command('list')
+        .command('ls')
         .description('list tasks')
         .action(async () => {
             const action = computeIfNotExist(m, 'list', undefined)
@@ -22,10 +22,10 @@ const init: CommandInit = actions => {
         });
 
     task
-        .command('update-status <id> <status>')
+        .command('status <id> <status>')
         .description('update task status with id')
         .action(async (id, status) => {
-            const action = computeIfNotExist(m, 'update-status', undefined)
+            const action = computeIfNotExist(m, 'status', undefined)
             await executeCommand(action, {args: {id, status}, options: {}}, []);
         });
 

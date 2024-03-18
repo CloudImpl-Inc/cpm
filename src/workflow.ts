@@ -1,4 +1,4 @@
-import {executeShellCommand, parseShellCommand, readJson, stepOutput, WorkflowInit, writeJson} from "./util";
+import {addMapKey, executeShellCommand, parseShellCommand, readJson, stepOutput, WorkflowInit, writeJson} from "./util";
 import {Command} from "commander";
 
 const init: WorkflowInit = (name, workflow) => {
@@ -8,14 +8,14 @@ const init: WorkflowInit = (name, workflow) => {
     command
         .action(async options => {
             const params: any = {
-                input: options
+                inputs: options
             }
 
             workflow.steps.forEach(s => {
                 writeJson(stepOutput, {});
                 const shellCmd = parseShellCommand(s.run, params);
                 executeShellCommand(shellCmd);
-                params[s.id] = readJson(stepOutput, {});
+                addMapKey(params, [s.id, 'outputs'], readJson(stepOutput, {}));
             })
         });
 
