@@ -1,5 +1,5 @@
 {
-  "name": "@cloudimpl-inc/cpm",
+  "name": "@cloudimpl/cpm",
   "version": "1.0.0",
   "description": "CloudImpl Project Manager",
   "main": "./dist/index.js",
