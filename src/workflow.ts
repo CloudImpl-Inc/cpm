@@ -20,7 +20,7 @@ const init: WorkflowInit = (ctx, name, workflow) => {
 
             // Enable nested workflow
             const result: Record<string, string> = {};
-            Object.keys(workflow.outputs).forEach(k => {
+            Object.keys(workflow.outputs || []).forEach(k => {
                 result[k] = parseShellCommand(workflow.outputs[k], params);
             })
 
