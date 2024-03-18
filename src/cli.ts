@@ -1,85 +1,116 @@
 import figlet from 'figlet';
 import {Command} from "commander";
-import {ActionInput, CPMPluginContext, CPMPluginCreator, Workflow} from ".";
+import {CPMContext, CPMPluginCreator, Workflow} from ".";
 import {addMapKey, CommandAction, computeIfNotExist, createFolder, cwd, readJson, writeJson} from "./util";
 import commands from './commands';
 import {existsSync} from "fs";
 import * as os from "os";
 import WorkflowInit from "./workflow";
 
-const getPluginSecrets = (secrets: any, name: string) => {
-    return computeIfNotExist(secrets, name, {});
+const getSecrets = (secrets: any, namespace: string) => {
+    return computeIfNotExist(secrets, namespace, {});
 }
+
+const isProjectRepo = existsSync(`${cwd}/cpm.json`);
 
 const run = async () => {
     const program = new Command()
         .version("1.0.0")
         .description("CloudImpl project manager | Your partner in project managing");
 
-    const globalConfig: Record<string, any> = Object.freeze(readJson(`${os.homedir()}/.cpm/cpm.json`, {}))
-    const localConfig: Record<string, any> = Object.freeze(readJson(`${cwd}/cpm.json`, {}));
+    const globalConfig: Record<string, any> = readJson(`${os.homedir()}/.cpm/cpm.json`, {});
+    const globalSecrets: Record<string, any> = readJson(`${os.homedir()}/.cpm/secrets.json`, {});
 
-    const globalSecrets: Record<string, any> = readJson(`${os.homedir()}/.cpm/secrets.json`, {})
+    let localConfig: Record<string, any> = {};
     let localSecrets: Record<string, any> = {};
+
+    if (isProjectRepo) {
+        createFolder(`${cwd}/.cpm`);
+        localConfig = readJson(`${cwd}/cpm.json`, {});
+        localSecrets = readJson(`${cwd}/.cpm/secrets.json`, {});
+    }
+
+    const config: Record<string, any> = {};
+    Object.assign(config, globalConfig);
+    Object.assign(config, localConfig);
+    config.globalPlugins = globalConfig.plugins;
+    config.globalWorkflows = globalConfig.workflows;
 
     const actions: Record<string, any> = {};
 
-    // Register global actions
-    for (const p of globalConfig.plugins) {
+    // Register global plugins
+    for (const p of (config?.globalPlugins || [])) {
         const pluginCreator = ((await import(`${os.homedir()}/.cpm/node_modules/${p}`)).default as CPMPluginCreator);
 
-        const ctx: CPMPluginContext = {
-            config: globalConfig,
-            secrets: getPluginSecrets(globalSecrets, p),
+        const ctx: CPMContext = {
+            config: Object.freeze(config),
+            secrets: getSecrets(globalSecrets, `plugin:${p}`),
         }
 
         const plugin = await pluginCreator(ctx);
         Object.keys(plugin.actions).forEach(command => {
             const key = command.split(' ');
             const action = plugin.actions[command];
-            const commandAction: CommandAction = async (input: ActionInput) => await action(ctx, input);
+            const commandAction: CommandAction = async (input) => await action(ctx, input);
             addMapKey(actions, key, commandAction);
         })
     }
 
-    if (existsSync(`${cwd}/cpm.json`)) {
-        createFolder(`${cwd}/.cpm`);
-        localSecrets = readJson(`${cwd}/.cpm/secrets.json`, {})
+    // Register local plugins
+    for (const p of (config?.plugins || [])) {
+        const pluginCreator = ((await import(`${cwd}/node_modules/${p}`)).default as CPMPluginCreator);
 
-        // Register actions
-        for (const p of localConfig.plugins) {
-            const pluginCreator = ((await import(`${cwd}/node_modules/${p}`)).default as CPMPluginCreator);
-
-            const ctx: CPMPluginContext = {
-                config: localConfig,
-                secrets: getPluginSecrets(localSecrets, p),
-            }
-
-            const plugin = await pluginCreator(ctx);
-            Object.keys(plugin.actions).forEach(command => {
-                const key = command.split(' ');
-                const action = plugin.actions[command];
-                const commandAction = async (input: ActionInput) => await action(ctx, input);
-                addMapKey(actions, key, commandAction);
-            })
+        const ctx: CPMContext = {
+            config: Object.freeze(config),
+            secrets: getSecrets(localSecrets, `plugin:${p}`),
         }
+
+        const plugin = await pluginCreator(ctx);
+        Object.keys(plugin.actions).forEach(command => {
+            const key = command.split(' ');
+            const action = plugin.actions[command];
+            const commandAction: CommandAction = async (input) => await action(ctx, input);
+            addMapKey(actions, key, commandAction);
+        })
     }
 
     // Register commands
-    for (const init of commands) {
-        const commands = await init(actions);
-        commands.forEach(c => {
-            program.addCommand(c);
-        });
+    for (const command of commands) {
+        const ctx: CPMContext = {
+            config: Object.freeze(config),
+            secrets: getSecrets(globalSecrets, `command:${command.name}`),
+        }
+
+        const cmdList = await command.init(ctx, actions);
+        cmdList.forEach(c => program.addCommand(c));
+    }
+
+    // Register global workflows
+    for (const name of Object.keys(config?.globalWorkflows || {})) {
+        const ctx: CPMContext = {
+            config: Object.freeze(config),
+            secrets: getSecrets(globalSecrets, `workflow:${name}`),
+        }
+
+        const w: Workflow = config.globalWorkflows[name];
+        const c = await WorkflowInit(ctx, name, w)
+        program.addCommand(c);
+    }
+
+    // Register local workflows
+    for (const name of Object.keys(config?.workflows || {})) {
+        const ctx: CPMContext = {
+            config: Object.freeze(config),
+            secrets: getSecrets(localSecrets, `workflow:${name}`),
+        }
+
+        const w: Workflow = config.workflows[name];
+        const c = await WorkflowInit(ctx, name, w)
+        program.addCommand(c);
     }
 
     if (existsSync(`${cwd}/cpm.json`)) {
-        // Register workflows
-        for (const name of Object.keys(localConfig.workflows)) {
-            const w: Workflow = localConfig.workflows[name];
-            const c = await WorkflowInit(name, w)
-            program.addCommand(c);
-        }
+
     }
 
     program
@@ -92,7 +123,8 @@ const run = async () => {
         })
         .parse(process.argv);
 
-    if (existsSync(`${cwd}/cpm.json`)) {
+    writeJson(`${os.homedir()}/.cpm/secrets.json`, globalSecrets);
+    if (isProjectRepo) {
         writeJson(`${cwd}/.cpm/secrets.json`, localSecrets);
     }
 

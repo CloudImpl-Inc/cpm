@@ -1,7 +1,7 @@
 import {CommandInit, computeIfNotExist, executeCommand} from "../util";
 import {Command} from "commander";
 
-const init: CommandInit = actions => {
+const init: CommandInit = (ctx, actions) => {
     const m = computeIfNotExist(actions, 'task', {})
     const task = new Command('task');
 
@@ -32,4 +32,7 @@ const init: CommandInit = actions => {
     return [task];
 }
 
-export default init;
+export default {
+    name: 'task',
+    init: init,
+};

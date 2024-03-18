@@ -1,7 +1,7 @@
 import {CommandInit, computeIfNotExist, executeCommand} from "../util";
 import {Command} from "commander";
 
-const init: CommandInit = actions => {
+const init: CommandInit = (ctx, actions) => {
     const m = computeIfNotExist(actions, 'repo', {})
     const repo = new Command('repo');
 
@@ -25,4 +25,7 @@ const init: CommandInit = actions => {
     return [repo];
 }
 
-export default init;
+export default {
+    name: 'repo',
+    init: init,
+};

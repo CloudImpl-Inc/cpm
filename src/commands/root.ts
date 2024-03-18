@@ -1,12 +1,10 @@
-import {CommandInit, computeIfNotExist, executeCommand, readJson} from "../util";
+import {CommandInit} from "../util";
 import {Command} from "commander";
 import {readdirSync} from "fs";
-import os from "os";
 
-const globalConfig: Record<string, any> = Object.freeze(readJson(`${os.homedir()}/.cpm/cpm.json`, {}));
-const rootDir = globalConfig.rootDir;
+const init: CommandInit = (ctx, actions) => {
+    const rootDir = ctx.config.rootDir;
 
-const init: CommandInit = actions => {
     const ls = new Command('ls')
         .description('list projects')
         .action(async () => {
@@ -30,4 +28,7 @@ const init: CommandInit = actions => {
     return [ls, cd];
 }
 
-export default init;
+export default {
+    name: 'root',
+    init: init,
+};

@@ -1,5 +1,5 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, ActionOutput, Workflow} from "./index";
+import {ActionInput, ActionOutput, CPMContext, Workflow} from "./index";
 import {Command} from "commander";
 import {execSync} from "child_process";
 
@@ -110,6 +110,6 @@ export const executeShellCommand = (cmd: string) => {
 
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
 
-export type CommandInit = (actions: Record<string, any>) => Command[] | Promise<Command[]>;
+export type CommandInit = (ctx: CPMContext, actions: Record<string, any>) => Command[] | Promise<Command[]>;
 
-export type WorkflowInit = (name: string, workflow: Workflow) => Command | Promise<Command>;
+export type WorkflowInit = (ctx: CPMContext, name: string, workflow: Workflow) => Command | Promise<Command>;

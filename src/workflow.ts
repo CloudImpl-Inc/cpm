@@ -1,7 +1,7 @@
 import {addMapKey, executeShellCommand, parseShellCommand, readJson, stepOutput, WorkflowInit, writeJson} from "./util";
 import {Command} from "commander";
 
-const init: WorkflowInit = (name, workflow) => {
+const init: WorkflowInit = (ctx, name, workflow) => {
     const command = new Command(name);
     workflow.args.forEach(arg => command.option(`--${arg} <${arg}>`));
 

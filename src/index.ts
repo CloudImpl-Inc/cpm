@@ -1,10 +1,10 @@
 export type CPMConfig = Record<string, any>;
 
-export type CPMPluginSecrets = Record<string, string>;
+export type CPMSecrets = Record<string, string>;
 
-export type CPMPluginContext = {
+export type CPMContext = {
     config: CPMConfig,
-    secrets: CPMPluginSecrets,
+    secrets: CPMSecrets,
 }
 
 export type ActionArgs = Record<string, any>;
@@ -18,14 +18,14 @@ export type ActionInput = {
 
 export type ActionOutput = Record<string, string>;
 
-export type Action = (ctx: CPMPluginContext, input: ActionInput) => ActionOutput | Promise<ActionOutput>;
+export type Action = (ctx: CPMContext, input: ActionInput) => ActionOutput | Promise<ActionOutput>;
 
 export type CPMPlugin = {
     name: string,
     actions: Record<string, Action>,
 }
 
-export type CPMPluginCreator = (ctx: CPMPluginContext) => CPMPlugin | Promise<CPMPlugin>;
+export type CPMPluginCreator = (ctx: CPMContext) => CPMPlugin | Promise<CPMPlugin>;
 
 export type WorkflowStep = {
     id: string;
