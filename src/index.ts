@@ -33,6 +33,7 @@ export type WorkflowStep = {
 }
 
 export type Workflow = {
-    args: string[];
+    inputs: string[];
     steps: WorkflowStep[];
+    outputs: Record<string, string>
 }
