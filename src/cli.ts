@@ -109,10 +109,6 @@ const run = async () => {
         program.addCommand(c);
     }
 
-    if (existsSync(`${cwd}/cpm.json`)) {
-
-    }
-
     program
         .on('command:*', function () {
             console.error('Unknown command: %s\n\n' +
