@@ -17,46 +17,37 @@ Then you can test changes realtime.
 
 ### Example project
 To test how to develop plugins and to check how to use cli tool 
-go to [cpm-plugins-example](https://github.com/CloudImpl-Inc/cpm-example)
+go to [cpm-example](https://github.com/CloudImpl-Inc/cpm-example)
 
 ## Usage
 Currently, not deployed to npm. After deploying can install as a normal npm package
 
-### cpm commands
-
-- cpm ls
-- cpm cd <path: org or org/repo>
-- cpm install
-- cpm open --editor <executable>
-- cpm repo clone <url>
-- cpm repo checkout -b <branch>
-- cpm task list
-- cpm task get <id>
-- cpm task update-status <status>
-
-### cpm default workflows
-
-#### checkout task
-
-```yaml
-- inputs:
-    - repo-url
-    - task-id
-    
-- steps:     
-    - id: checkout-repo
-      run: cpm repo clone ${{ inputs.repo-url }}
-    
-    - id: open-repo
-      run: cpm cd ${{ checkout-repo.outputs.path }}
-      
-    - id: install-plugins
-      run: cpm install
-      
-    - id: get-task
-      run: cpm task get ${{ inputs.task-id }}
-    
-    - id: checkout-branch
-      run: cpm repo checkout -b feature/${{ get-task.outputs.id }}-${{ get-task.outputs.title }}
+### sample cpm.json
+```json
+{
+  "plugins": [
+    "@cloudimpl-inc/cpm-plugin-github",
+    "@cloudimpl-inc/cpm-plugin-clickup"
+  ],
+  "workflows": {
+    "checkout-issue": {
+      "args": ["repoUrl", "taskId"],
+      "steps": [
+        {
+          "id": "checkout-repo",
+          "run": "cpm repo clone {{inputs.repoUrl}}"
+        },
+        {
+          "id": "get-task",
+          "run": "cpm task get {{inputs.taskId}}"
+        },
+        {
+          "id": "checkout-branch",
+          "run": "cpm repo checkout -b feature/{{get-task.outputs.id}}-{{get-task.outputs.title}}"
+        }
+      ]
+    }
+  }
+}
 ```
 
