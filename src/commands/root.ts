@@ -61,6 +61,45 @@ const init: CommandInit = (ctx, actions) => {
             }
         })
 
+    const uninstall = new Command('uninstall')
+        .argument('<plugin>')
+        .description('uninstall cpm plugin')
+        .option('-g, --global', 'uninstall plugin globally')
+        .action((plugin: string, opts: OptionValues) => {
+            if (opts.global) {
+                process.chdir(globalFolderPath);
+                const config = readYaml(globalConfigFilePath, {})
+                const plugins = computeIfNotExist(config, 'plugins', []);
+
+                if (plugins.includes(plugin)) {
+                    executeShellCommand(`npm uninstall ${plugin} --save-dev`);
+
+                    const index = plugins.indexOf(plugin);
+                    if (index > -1) {
+                        plugins.splice(index, 1);
+                    }
+
+                    writeYaml(globalConfigFilePath, config);
+                }
+            } else if (isProjectRepo) {
+                const config = readYaml(configFilePath, {})
+                const plugins = computeIfNotExist(config, 'plugins', []);
+
+                if (plugins.includes(plugin)) {
+                    executeShellCommand(`npm uninstall ${plugin} --save-dev`);
+
+                    const index = plugins.indexOf(plugin);
+                    if (index > -1) {
+                        plugins.splice(index, 1);
+                    }
+
+                    writeYaml(configFilePath, config);
+                }
+            } else {
+                throw new Error('not a project folder');
+            }
+        })
+
     const sync = new Command('sync')
         .description('sync cpm plugin')
         .action(() => {
@@ -71,7 +110,7 @@ const init: CommandInit = (ctx, actions) => {
             }
         })
 
-    return [ls, cd, install, sync];
+    return [ls, cd, install, uninstall, sync];
 }
 
 export default {

@@ -5,13 +5,14 @@ import {
     CommandAction,
     computeIfNotExist, configFilePath,
     createFolder,
-    cwd, folderPath, globalConfigFilePath, globalFolderPath, globalSecretsFilePath,
+    cwd, defaultProjectsRootPath, folderPath, globalConfigFilePath, globalFolderPath, globalSecretsFilePath,
     isProjectRepo,
     readJson, readYaml, secretsFilePath,
-    writeJson
+    writeJson, writeYaml
 } from "./util";
 import commands from './commands';
 import WorkflowInit from "./workflow";
+import {existsSync} from "fs";
 
 const getSecrets = (secrets: any, namespace: string) => {
     return computeIfNotExist(secrets, namespace, {});
@@ -21,6 +22,20 @@ const run = async () => {
     const program = new Command()
         .version("1.0.0")
         .description("CloudImpl project manager | Your partner in project managing");
+
+    createFolder(globalFolderPath);
+
+    if (!existsSync(globalConfigFilePath)) {
+        // Add initial cpm.yml
+
+        createFolder(defaultProjectsRootPath);
+
+        const initialConfig = {
+            rootDir: defaultProjectsRootPath
+        };
+
+        writeYaml(globalConfigFilePath, initialConfig);
+    }
 
     const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
     const globalSecrets: Record<string, any> = readJson(globalSecretsFilePath, {});

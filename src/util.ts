@@ -15,6 +15,8 @@ export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
 export const globalSecretsFilePath = `${globalFolderPath}/secrets.json`;
 
+export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
+
 export const stepOutput = isProjectRepo
     ? `${cwd}/.cpm/output.json`
     : `${globalFolderPath}/output.json`
