@@ -1,6 +1,6 @@
 {
   "name": "@cloudimpl-inc/cpm",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "CloudImpl Project Manager",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -12,6 +12,7 @@
     "cpm": "./dist/bin/cpm.js"
   },
   "scripts": {
+    "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
     "build": "tsup"
   },
   "keywords": [

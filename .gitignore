@@ -147,3 +147,5 @@ dist
 .idea
 ./out
 *.iml
+
+/src/version.ts

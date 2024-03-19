@@ -74,9 +74,20 @@ const loadWorkflow = async (program: Command, config: Record<string, any>, secre
     program.addCommand(c);
 }
 
+const loadLibVersion = async (): Promise<string> => {
+    try {
+        // @ts-ignore
+        return (await import('./version.ts'))['LIB_VERSION']
+    } catch (err) {
+        return "0.0.0";
+    }
+}
+
 const run = async () => {
+    const version = await loadLibVersion();
+
     const program = new Command()
-        .version("1.0.0")
+        .version(version)
         .description("CloudImpl project manager | Your partner in project managing");
 
     createFolder(globalFolderPath);
