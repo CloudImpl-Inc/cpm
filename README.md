@@ -15,10 +15,6 @@ Then you can test changes realtime.
 
 - Install with `npm install -g .`
 
-### Example project
-To test how to develop plugins and to check how to use cli tool 
-go to [cpm-example](https://github.com/CloudImpl-Inc/cpm-example)
-
 ## Usage
 ### Install
 Follow these steps to install cpm command line tool
@@ -26,32 +22,7 @@ Follow these steps to install cpm command line tool
 - Run `npm install -g @cloudimpl/cpm`
 - Run `cpm` and it should show cpm cli usage info
 
-### sample cpm.json
-```json
-{
-  "plugins": [
-    "@cloudimpl-inc/cpm-plugin-github",
-    "@cloudimpl-inc/cpm-plugin-clickup"
-  ],
-  "workflows": {
-    "checkout-issue": {
-      "args": ["repoUrl", "taskId"],
-      "steps": [
-        {
-          "id": "checkout-repo",
-          "run": "cpm repo clone {{inputs.repoUrl}}"
-        },
-        {
-          "id": "get-task",
-          "run": "cpm task get {{inputs.taskId}}"
-        },
-        {
-          "id": "checkout-branch",
-          "run": "cpm repo checkout -b feature/{{get-task.outputs.id}}-{{get-task.outputs.title}}"
-        }
-      ]
-    }
-  }
-}
-```
+## Plugin development
+- Go to [cpm-plugin-gs](https://github.com/CloudImpl-Inc/cpm-plugin-gs) and follow steps
+- Sample plugin is available in [cpm-plugin-sample](https://github.com/CloudImpl-Inc/cpm-plugin-sample)
 
