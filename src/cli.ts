@@ -58,6 +58,7 @@ const run = async () => {
             const commandAction: CommandAction = async (input) => await action(ctx, input);
             addMapKey(actions, key, commandAction);
         })
+        console.log(`global plugin ${p} loaded`);
     }
 
     // Register local plugins
@@ -76,6 +77,8 @@ const run = async () => {
             const commandAction: CommandAction = async (input) => await action(ctx, input);
             addMapKey(actions, key, commandAction);
         })
+
+        console.log(`plugin ${p} loaded`);
     }
 
     // Register commands

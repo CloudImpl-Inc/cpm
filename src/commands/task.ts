@@ -9,7 +9,7 @@ const init: CommandInit = (ctx, actions) => {
         .command('ls')
         .description('list tasks')
         .action(async () => {
-            const action = computeIfNotExist(m, 'list', undefined)
+            const action = computeIfNotExist(m, 'ls', undefined)
             await executeCommand(action, {args: {}, options: {}}, [])
         });
 
