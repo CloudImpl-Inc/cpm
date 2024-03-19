@@ -25,13 +25,6 @@ const init: CommandInit = (ctx, actions) => {
                 })
         });
 
-    const cd = new Command('cd')
-        .argument('<path>')
-        .description('go to project directory')
-        .action(async (path) => {
-            process.chdir(path);
-        });
-
     const install = new Command('install')
         .argument('<plugin>')
         .description('install cpm plugin')
@@ -110,7 +103,7 @@ const init: CommandInit = (ctx, actions) => {
             }
         })
 
-    return [ls, cd, install, uninstall, sync];
+    return [ls, install, uninstall, sync];
 }
 
 export default {
