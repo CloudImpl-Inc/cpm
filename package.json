@@ -25,10 +25,11 @@
   "homepage": "https://github.com/cloudimpl-inc/cpm#readme",
   "dependencies": {
     "commander": "^12.0.0",
-    "figlet": "^1.7.0"
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@types/figlet": "^1.5.8",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.11.28",
     "tiny-glob": "^0.2.9",
     "tsup": "^8.0.2",

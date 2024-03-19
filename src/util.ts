@@ -2,10 +2,22 @@ import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, ActionOutput, CPMContext, Workflow} from "./index";
 import {Command} from "commander";
 import {execSync} from "child_process";
+import yaml from "js-yaml";
+import * as os from "os";
 
 export const cwd = process.cwd();
+export const configFilePath = `${cwd}/cpm.yml`;
+export const folderPath = `${cwd}/.cpm`;
+export const secretsFilePath = `${folderPath}/secrets.json`;
+export const isProjectRepo = existsSync(configFilePath);
 
-export const stepOutput = `${cwd}/.cpm/output.json`;
+export const globalFolderPath = `${os.homedir()}/.cpm`;
+export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
+export const globalSecretsFilePath = `${globalFolderPath}/secrets.json`;
+
+export const stepOutput = isProjectRepo
+    ? `${cwd}/.cpm/output.json`
+    : `${globalFolderPath}/output.json`
 
 export const createFolder = (path: string): void => {
     if (!existsSync(path)){
@@ -26,9 +38,27 @@ export const readJson = (path: string, def: any | (() => any)): any => {
     }
 }
 
+export const readYaml = (path: string, def: any | (() => any)): any => {
+    if (existsSync(path)) {
+        const data = readFileSync(path);
+        return yaml.load(data.toString());
+    } else {
+        if (typeof def === 'function') {
+            return def();
+        } else {
+            return def;
+        }
+    }
+}
+
 export const writeJson = (path: string, obj: any): void => {
     const json = JSON.stringify(obj, null, 4);
     writeFileSync(path, Buffer.from(json))
+}
+
+export const writeYaml = (path: string, obj: any): void => {
+    const yml = yaml.dump(obj);
+    writeFileSync(path, Buffer.from(yml))
 }
 
 export const computeIfNotExist = (map: any, key: string, value: any | ((k: string) => any)): any => {

@@ -1,5 +1,12 @@
-import {CommandInit} from "../util";
-import {Command} from "commander";
+import {
+    CommandInit, computeIfNotExist, configFilePath,
+    executeShellCommand,
+    globalConfigFilePath,
+    globalFolderPath,
+    isProjectRepo,
+    readYaml, writeYaml
+} from "../util";
+import {Command, OptionValues} from "commander";
 import {readdirSync} from "fs";
 
 const init: CommandInit = (ctx, actions) => {
@@ -25,7 +32,46 @@ const init: CommandInit = (ctx, actions) => {
             process.chdir(path);
         });
 
-    return [ls, cd];
+    const install = new Command('install')
+        .argument('<plugin>')
+        .description('install cpm plugin')
+        .option('-g, --global', 'install plugin globally')
+        .action((plugin: string, opts: OptionValues) => {
+            if (opts.global) {
+                process.chdir(globalFolderPath);
+                const config = readYaml(globalConfigFilePath, {})
+                const plugins = computeIfNotExist(config, 'plugins', []);
+
+                if (!plugins.includes(plugin)) {
+                    executeShellCommand(`npm install ${plugin} --save-dev`);
+                    plugins.push(plugin);
+                    writeYaml(globalConfigFilePath, config);
+                }
+            } else if (isProjectRepo) {
+                const config = readYaml(configFilePath, {})
+                const plugins = computeIfNotExist(config, 'plugins', []);
+
+                if (!plugins.includes(plugin)) {
+                    executeShellCommand(`npm install ${plugin} --save-dev`);
+                    plugins.push(plugin);
+                    writeYaml(configFilePath, config);
+                }
+            } else {
+                throw new Error('not a project folder');
+            }
+        })
+
+    const sync = new Command('sync')
+        .description('sync cpm plugin')
+        .action(() => {
+            if (isProjectRepo) {
+                executeShellCommand('npm install');
+            } else {
+                throw new Error('not a project folder');
+            }
+        })
+
+    return [ls, cd, install, sync];
 }
 
 export default {

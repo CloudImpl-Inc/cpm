@@ -1,33 +1,37 @@
-import figlet from 'figlet';
 import {Command} from "commander";
 import {CPMContext, CPMPluginCreator, Workflow} from ".";
-import {addMapKey, CommandAction, computeIfNotExist, createFolder, cwd, readJson, writeJson} from "./util";
+import {
+    addMapKey,
+    CommandAction,
+    computeIfNotExist, configFilePath,
+    createFolder,
+    cwd, folderPath, globalConfigFilePath, globalFolderPath, globalSecretsFilePath,
+    isProjectRepo,
+    readJson, readYaml, secretsFilePath,
+    writeJson
+} from "./util";
 import commands from './commands';
-import {existsSync} from "fs";
-import * as os from "os";
 import WorkflowInit from "./workflow";
 
 const getSecrets = (secrets: any, namespace: string) => {
     return computeIfNotExist(secrets, namespace, {});
 }
 
-const isProjectRepo = existsSync(`${cwd}/cpm.json`);
-
 const run = async () => {
     const program = new Command()
         .version("1.0.0")
         .description("CloudImpl project manager | Your partner in project managing");
 
-    const globalConfig: Record<string, any> = readJson(`${os.homedir()}/.cpm/cpm.json`, {});
-    const globalSecrets: Record<string, any> = readJson(`${os.homedir()}/.cpm/secrets.json`, {});
+    const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
+    const globalSecrets: Record<string, any> = readJson(globalSecretsFilePath, {});
 
     let localConfig: Record<string, any> = {};
     let localSecrets: Record<string, any> = {};
 
     if (isProjectRepo) {
-        createFolder(`${cwd}/.cpm`);
-        localConfig = readJson(`${cwd}/cpm.json`, {});
-        localSecrets = readJson(`${cwd}/.cpm/secrets.json`, {});
+        createFolder(folderPath);
+        localConfig = readYaml(configFilePath, {});
+        localSecrets = readJson(secretsFilePath, {});
     }
 
     const config: Record<string, any> = {};
@@ -40,7 +44,7 @@ const run = async () => {
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        const pluginCreator = ((await import(`${os.homedir()}/.cpm/node_modules/${p}`)).default as CPMPluginCreator);
+        const pluginCreator = ((await import(`${globalFolderPath}/node_modules/${p}`)).default as CPMPluginCreator);
 
         const ctx: CPMContext = {
             config: Object.freeze(config),
@@ -119,13 +123,12 @@ const run = async () => {
         })
         .parse(process.argv);
 
-    writeJson(`${os.homedir()}/.cpm/secrets.json`, globalSecrets);
+    writeJson(globalSecretsFilePath, globalSecrets);
     if (isProjectRepo) {
-        writeJson(`${cwd}/.cpm/secrets.json`, localSecrets);
+        writeJson(secretsFilePath, localSecrets);
     }
 
     if (!process.argv.slice(2).length) {
-        console.log(figlet.textSync('cpm'));
         program.outputHelp();
     }
 }
