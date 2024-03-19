@@ -10,10 +10,12 @@ export const configFilePath = `${cwd}/cpm.yml`;
 export const folderPath = `${cwd}/.cpm`;
 export const secretsFilePath = `${folderPath}/secrets.json`;
 export const isProjectRepo = existsSync(configFilePath);
+export const pluginRoot = `${cwd}/node_modules`;
 
 export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
 export const globalSecretsFilePath = `${globalFolderPath}/secrets.json`;
+export const globalPluginRoot = `${globalFolderPath}/node_modules`;
 
 export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
 
@@ -145,3 +147,8 @@ export type CommandAction = (input: ActionInput) => ActionOutput | Promise<Actio
 export type CommandInit = (ctx: CPMContext, actions: Record<string, any>) => Command[] | Promise<Command[]>;
 
 export type WorkflowInit = (ctx: CPMContext, name: string, workflow: Workflow) => Command | Promise<Command>;
+
+export type CPMCommand = {
+    name: string;
+    init: CommandInit
+}
