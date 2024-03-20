@@ -25,6 +25,7 @@ export type Action = (ctx: CPMContext, input: ActionInput) => ActionOutput | Pro
 
 export type CPMPlugin = {
     name: string,
+    commands?: Record<string, CommandDef>,
     actions: Record<string, Action>,
 }
 
@@ -40,3 +41,23 @@ export type Workflow = {
     steps: WorkflowStep[];
     outputs: Record<string, string>
 }
+
+export type ArgumentDef = {
+    description?: string;
+};
+
+export type OptionDef = {
+    shortName?: string;
+    description?: string;
+};
+
+export type OutputDef = {
+    description?: string;
+}
+
+export type CommandDef = {
+    description?: string,
+    arguments?: Record<string, ArgumentDef>;
+    options?: Record<string, OptionDef>;
+    outputs?: Record<string, OutputDef>;
+};

@@ -1,10 +1,9 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, ActionOutput, CPMContext, Workflow} from "./index";
+import {ActionInput, ActionOutput, CommandDef, CPMContext, Workflow} from "./index";
 import {Command} from "commander";
 import {execSync} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
-import {CommandDef} from "./commands";
 
 export const cwd = process.cwd();
 export const configFilePath = `${cwd}/cpm.yml`;

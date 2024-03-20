@@ -1,5 +1,5 @@
 import {Command} from "commander";
-import {CPMContext, CPMPluginCreator, Workflow} from ".";
+import {CommandDef, CPMContext, CPMPluginCreator, Workflow} from ".";
 import {
     CommandAction,
     computeIfNotExist,
@@ -19,7 +19,7 @@ import {
     writeYaml
 } from "./util";
 import RootPlugin from './root-plugin';
-import commands, {CommandDef} from './commands';
+import cpmCommands from './commands';
 import WorkflowInit from "./workflow";
 import {existsSync} from "fs";
 
@@ -27,22 +27,22 @@ const getNamespace = (data: any, namespace: string) => {
     return computeIfNotExist(data, namespace, {});
 }
 
-const loadDynamicPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
-                                 variables: Record<string, string>, secrets: Record<string, string>,
+const loadDynamicPlugin = async (commands: Record<string, CommandDef>, actions: Record<string, CommandAction>,
+                                 config: Record<string, any>, variables: Record<string, string>, secrets: Record<string, string>,
                                  pluginRoot: string, pluginName: string) => {
     const pluginPath = `${pluginRoot}/${pluginName}`;
 
     try {
         const pluginCreator = ((await import(`${pluginRoot}/${pluginName}`)).default as CPMPluginCreator);
-        await loadPlugin(actions, config, variables, secrets, pluginName, pluginCreator);
+        await loadPlugin(commands, actions, config, variables, secrets, pluginName, pluginCreator);
     } catch (err) {
         console.error(`error loading plugin ${pluginPath}`);
         console.error(err);
     }
 }
 
-const loadPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
-                          variables: Record<string, string>, secrets: Record<string, string>,
+const loadPlugin = async (commands: Record<string, CommandDef>, actions: Record<string, CommandAction>,
+                          config: Record<string, any>, variables: Record<string, string>, secrets: Record<string, string>,
                           pluginName: string, pluginCreator: CPMPluginCreator) => {
     const ctx: CPMContext = {
         config: Object.freeze(config),
@@ -51,6 +51,12 @@ const loadPlugin = async (actions: Record<string, CommandAction>, config: Record
     }
 
     const plugin = await pluginCreator(ctx);
+
+    const pluginCommands = plugin.commands || {};
+    Object.keys(pluginCommands).forEach(command => {
+        commands[`${plugin.name} ${command}`] = pluginCommands[command];
+    })
+
     Object.keys(plugin.actions).forEach(command => {
         const action = plugin.actions[command];
         actions[command] = async (input) => await action(ctx, input);
@@ -135,19 +141,20 @@ const run = async () => {
     config.globalPlugins = globalConfig.plugins;
     config.globalWorkflows = globalConfig.workflows;
 
+    const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
 
     // Register root plugin
-    await loadPlugin(actions, config, globalVariables, globalSecrets, "cpm/root", RootPlugin);
+    await loadPlugin(commands, actions, config, globalVariables, globalSecrets, "cpm/root", RootPlugin);
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        await loadDynamicPlugin(actions, config, globalVariables, globalSecrets, globalPluginRoot, p);
+        await loadDynamicPlugin(commands, actions, config, globalVariables, globalSecrets, globalPluginRoot, p);
     }
 
     // Register local plugins
     for (const p of (config?.plugins || [])) {
-        await loadDynamicPlugin(actions, config, localVariables, localSecrets, pluginRoot, p);
+        await loadDynamicPlugin(commands, actions, config, localVariables, localSecrets, pluginRoot, p);
     }
 
     // Register commands

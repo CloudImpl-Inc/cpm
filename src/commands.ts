@@ -1,22 +1,4 @@
-type ArgumentDef = {
-    description?: string;
-};
-
-type OptionDef = {
-    shortName?: string;
-    description?: string;
-};
-
-type OutputDef = {
-    description?: string;
-}
-
-export type CommandDef = {
-    description?: string,
-    arguments?: Record<string, ArgumentDef>;
-    options?: Record<string, OptionDef>;
-    outputs?: Record<string, OutputDef>;
-};
+import {CommandDef} from "./index";
 
 const commands: Record<string, CommandDef> = {
     "list": {
