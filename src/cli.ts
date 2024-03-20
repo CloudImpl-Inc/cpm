@@ -5,17 +5,16 @@ import {
     computeIfNotExist,
     configFilePath, convertFlatToTree,
     createFolder,
-    defaultProjectsRootPath, executeCommand,
-    folderPath,
+    defaultProjectsRootPath, folderPath,
     globalConfigFilePath,
     globalFolderPath,
     globalPluginRoot,
-    globalSecretsFilePath,
+    globalSecretsFilePath, globalVariablesFilePath,
     isProjectRepo, parseCommand,
     pluginRoot,
     readJson,
     readYaml,
-    secretsFilePath, TreeNode,
+    secretsFilePath, TreeNode, variablesFilePath,
     writeJson,
     writeYaml
 } from "./util";
@@ -24,28 +23,31 @@ import commands, {CommandDef} from './commands';
 import WorkflowInit from "./workflow";
 import {existsSync} from "fs";
 
-const getSecrets = (secrets: any, namespace: string) => {
-    return computeIfNotExist(secrets, namespace, {});
+const getNamespace = (data: any, namespace: string) => {
+    return computeIfNotExist(data, namespace, {});
 }
 
 const loadDynamicPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
-                                 secrets: Record<string, any>, pluginRoot: string, pluginName: string) => {
+                                 variables: Record<string, string>, secrets: Record<string, string>,
+                                 pluginRoot: string, pluginName: string) => {
     const pluginPath = `${pluginRoot}/${pluginName}`;
 
     try {
         const pluginCreator = ((await import(`${pluginRoot}/${pluginName}`)).default as CPMPluginCreator);
-        await loadPlugin(actions, config, secrets, pluginName, pluginCreator);
+        await loadPlugin(actions, config, variables, secrets, pluginName, pluginCreator);
     } catch (err) {
         console.error(`error loading plugin ${pluginPath}`);
         console.error(err);
     }
 }
 
-const loadPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>, secrets: Record<string, any>,
+const loadPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
+                          variables: Record<string, string>, secrets: Record<string, string>,
                           pluginName: string, pluginCreator: CPMPluginCreator) => {
     const ctx: CPMContext = {
         config: Object.freeze(config),
-        secrets: getSecrets(secrets, `plugin:${pluginName}`),
+        variables: getNamespace(variables, `plugin:${pluginName}`),
+        secrets: getNamespace(secrets, `plugin:${pluginName}`),
     }
 
     const plugin = await pluginCreator(ctx);
@@ -72,11 +74,13 @@ const loadCommand = async (actions: Record<string, any>, name: string, targetAct
     return command;
 }
 
-const loadWorkflow = async (program: Command, config: Record<string, any>, secrets: Record<string, any>,
+const loadWorkflow = async (program: Command, config: Record<string, any>,
+                            variables: Record<string, string>, secrets: Record<string, string>,
                             workflowName: string, workflow: Workflow) => {
     const ctx: CPMContext = {
         config: Object.freeze(config),
-        secrets: getSecrets(secrets, `workflow:${workflowName}`),
+        variables: getNamespace(variables, `workflow:${workflowName}`),
+        secrets: getNamespace(secrets, `workflow:${workflowName}`),
     }
 
     const c = await WorkflowInit(ctx, workflowName, workflow)
@@ -111,14 +115,17 @@ const run = async () => {
     }
 
     const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
-    const globalSecrets: Record<string, any> = readJson(globalSecretsFilePath, {});
+    const globalVariables: Record<string, string> = readJson(globalVariablesFilePath, {});
+    const globalSecrets: Record<string, string> = readJson(globalSecretsFilePath, {});
 
     let localConfig: Record<string, any> = {};
-    let localSecrets: Record<string, any> = {};
+    let localVariables: Record<string, string> = {};
+    let localSecrets: Record<string, string> = {};
 
     if (isProjectRepo) {
         createFolder(folderPath);
         localConfig = readYaml(configFilePath, {});
+        localVariables = readJson(variablesFilePath, {});
         localSecrets = readJson(secretsFilePath, {});
     }
 
@@ -131,16 +138,16 @@ const run = async () => {
     const actions: Record<string, CommandAction> = {};
 
     // Register root plugin
-    await loadPlugin(actions, config, globalSecrets, "cpm/root", RootPlugin);
+    await loadPlugin(actions, config, globalVariables, globalSecrets, "cpm/root", RootPlugin);
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        await loadDynamicPlugin(actions, config, globalSecrets, globalPluginRoot, p);
+        await loadDynamicPlugin(actions, config, globalVariables, globalSecrets, globalPluginRoot, p);
     }
 
     // Register local plugins
     for (const p of (config?.plugins || [])) {
-        await loadDynamicPlugin(actions, config, localSecrets, pluginRoot, p);
+        await loadDynamicPlugin(actions, config, localVariables, localSecrets, pluginRoot, p);
     }
 
     // Register commands
@@ -153,17 +160,19 @@ const run = async () => {
 
     // Register global workflows
     for (const name of Object.keys(config?.globalWorkflows || {})) {
-        await loadWorkflow(program, config, globalSecrets, name, config.globalWorkflows[name]);
+        await loadWorkflow(program, config, globalVariables, globalSecrets, name, config.globalWorkflows[name]);
     }
 
     // Register local workflows
     for (const name of Object.keys(config?.workflows || {})) {
-        await loadWorkflow(program, config, localSecrets, name, config.workflows[name]);
+        await loadWorkflow(program, config, localVariables, localSecrets, name, config.workflows[name]);
     }
 
     program.exitOverride(() => {
+        writeJson(globalVariablesFilePath, globalVariables);
         writeJson(globalSecretsFilePath, globalSecrets);
         if (isProjectRepo) {
+            writeJson(variablesFilePath, localVariables);
             writeJson(secretsFilePath, localSecrets);
         }
     })

@@ -9,12 +9,14 @@ import {CommandDef} from "./commands";
 export const cwd = process.cwd();
 export const configFilePath = `${cwd}/cpm.yml`;
 export const folderPath = `${cwd}/.cpm`;
+export const variablesFilePath = `${folderPath}/variables.json`;
 export const secretsFilePath = `${folderPath}/secrets.json`;
 export const isProjectRepo = existsSync(configFilePath);
 export const pluginRoot = `${cwd}/node_modules`;
 
 export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
+export const globalVariablesFilePath = `${globalFolderPath}/variables.json`;
 export const globalSecretsFilePath = `${globalFolderPath}/secrets.json`;
 export const globalPluginRoot = `${globalFolderPath}/node_modules`;
 

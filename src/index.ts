@@ -1,9 +1,12 @@
 export type CPMConfig = Record<string, any>;
 
+export type CPMVariables = Record<string, string>;
+
 export type CPMSecrets = Record<string, string>;
 
 export type CPMContext = {
     config: CPMConfig,
+    variables: CPMVariables,
     secrets: CPMSecrets,
 }
 
