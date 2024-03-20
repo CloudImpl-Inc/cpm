@@ -19,7 +19,7 @@ export type CommandDef = {
 };
 
 const commands: Record<string, CommandDef> = {
-    "ls": {
+    "list": {
         description: "list projects"
     },
     "sync": {
