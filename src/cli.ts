@@ -11,7 +11,7 @@ import {
     globalFolderPath,
     globalPluginRoot,
     globalSecretsFilePath,
-    isProjectRepo,
+    isProjectRepo, parseCommand,
     pluginRoot,
     readJson,
     readYaml,
@@ -60,44 +60,11 @@ const loadCommand = async (actions: Record<string, any>, name: string, targetAct
     const command = new Command(name);
 
     if (node.current) {
-        const argDefs= node.current.arguments || {};
-        const argNames = Object.keys(argDefs);
-
-        const optDefs = node.current.options || {};
-        const optNames = Object.keys(optDefs);
-
-        const outputs = node.current.outputs || {};
-        const outputNames = Object.keys(outputs);
-
-        for (const name of Object.keys(argDefs)) {
-            const def = argDefs[name];
-            command.argument(`<${name}>`, def.description);
-        }
-
-        for (const name of Object.keys(optDefs)) {
-            const def = optDefs[name];
-            command.option(`-${def.shortName}, --${name}`, def.description);
-        }
-
-        command.action(async (...args) => {
-            const actionArgs: any = {};
-            if (argNames.length > 0) {
-                for (let i = 0; i < argNames.length; i++) {
-                    actionArgs[argNames[i]] = args[i];
-                }
-            }
-
-            const actionOpts: any = (optNames.length > 0)
-                ? args[args.length - 1]
-                : {};
-
-            await executeCommand(actions[targetAction], {args: actionArgs, options: actionOpts}, outputNames);
-        })
+        parseCommand(command, node.current, actions[targetAction]);
     } else {
         for (let subName of Object.keys(node.children)) {
-            const subNode = node.children[subName];
             const subCommand = await loadCommand(actions, subName, `${targetAction} ${subName}`,
-                subNode);
+                node.children[subName]);
             command.addCommand(subCommand);
         }
     }

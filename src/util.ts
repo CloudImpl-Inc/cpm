@@ -4,6 +4,7 @@ import {Command} from "commander";
 import {execSync} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
+import {CommandDef} from "./commands";
 
 export const cwd = process.cwd();
 export const configFilePath = `${cwd}/cpm.yml`;
@@ -170,6 +171,42 @@ export const convertFlatToTree = <T>(flatObject: Record<string, T>): TreeNode<T>
     }
 
     return tree;
+}
+
+export const parseCommand = (command: Command, def: CommandDef, action: CommandAction) => {
+    const argDefs = def.arguments || {};
+    const argNames = Object.keys(argDefs);
+
+    const optDefs = def.options || {};
+    const optNames = Object.keys(optDefs);
+
+    const outputs = def.outputs || {};
+    const outputNames = Object.keys(outputs);
+
+    for (const name of Object.keys(argDefs)) {
+        const def = argDefs[name];
+        command.argument(`<${name}>`, def.description);
+    }
+
+    for (const name of Object.keys(optDefs)) {
+        const def = optDefs[name];
+        command.option(`-${def.shortName}, --${name}`, def.description);
+    }
+
+    command.action(async (...args) => {
+        const actionArgs: any = {};
+        if (argNames.length > 0) {
+            for (let i = 0; i < argNames.length; i++) {
+                actionArgs[argNames[i]] = args[i];
+            }
+        }
+
+        const actionOpts: any = (optNames.length > 0)
+            ? args[args.length - 1]
+            : {};
+
+        await executeCommand(action, {args: actionArgs, options: actionOpts}, outputNames);
+    })
 }
 
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
