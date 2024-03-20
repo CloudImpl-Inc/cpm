@@ -161,6 +161,13 @@ const run = async () => {
         await loadWorkflow(program, config, localSecrets, name, config.workflows[name]);
     }
 
+    program.exitOverride(() => {
+        writeJson(globalSecretsFilePath, globalSecrets);
+        if (isProjectRepo) {
+            writeJson(secretsFilePath, localSecrets);
+        }
+    })
+
     program
         .on('command:*', function () {
             console.error('Unknown command: %s\n\n' +
@@ -170,15 +177,6 @@ const run = async () => {
             process.exit(1);
         })
         .parse(process.argv);
-
-    writeJson(globalSecretsFilePath, globalSecrets);
-    if (isProjectRepo) {
-        writeJson(secretsFilePath, localSecrets);
-    }
-
-    if (!process.argv.slice(2).length) {
-        program.outputHelp();
-    }
 }
 
 run().then();
