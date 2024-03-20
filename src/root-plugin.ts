@@ -13,7 +13,7 @@ const init: CPMPluginCreator = ctx => {
     return {
         name: "cpm/root",
         actions: {
-            "ls": (ctx, input) => {
+            "list": (ctx, input) => {
                 readdirSync(ctx.config.rootDir, { withFileTypes: true })
                     .filter(orgDir => orgDir.isDirectory())
                     .forEach(orgDir => {
