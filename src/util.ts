@@ -142,13 +142,36 @@ export const executeShellCommand = (cmd: string) => {
     console.log(buffer.toString());
 }
 
+export type TreeNode<T> = {
+    current: T | null;
+    children: Record<string, TreeNode<T>>;
+};
+
+
+export const convertFlatToTree = <T>(flatObject: Record<string, T>): TreeNode<T> => {
+    const tree: TreeNode<T> = {
+        current: null,
+        children: {}
+    };
+
+    for (const key in flatObject) {
+        const segments = key.split(' ');
+        let currentNode = tree;
+
+        for (const segment of segments) {
+            currentNode.children[segment] = currentNode.children[segment] || {
+                current: null,
+                children: {}
+            };
+            currentNode = currentNode.children[segment];
+        }
+
+        currentNode.current = flatObject[key];
+    }
+
+    return tree;
+}
+
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
 
-export type CommandInit = (ctx: CPMContext, actions: Record<string, any>) => Command[] | Promise<Command[]>;
-
 export type WorkflowInit = (ctx: CPMContext, name: string, workflow: Workflow) => Command | Promise<Command>;
-
-export type CPMCommand = {
-    name: string;
-    init: CommandInit
-}
