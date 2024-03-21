@@ -1,7 +1,7 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, ActionOutput, CommandDef, CPMContext, Workflow} from "./index";
 import {Command} from "commander";
-import {spawn} from "child_process";
+import {execSync, spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 
@@ -140,15 +140,32 @@ export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): 
     return cmd.replace(placeHolder, param);
 }
 
-export const executeShellCommand = async (commandString: string) => {
-    console.log(commandString);
-
-    const parts = commandString.trim().split(/\s+/);
+export const splitCommandString = (commandString: string): { command: string, args: string[] } => {
+    const parts = commandString.split(/\s+/); // Split by spaces
     const command = parts[0];
     const args = parts.slice(1);
 
+    // Handling quoted arguments
+    for (let i = 0; i < args.length; i++) {
+        if (args[i].startsWith('"') && args[i].endsWith('"')) {
+            args[i] = args[i].slice(1, -1); // Remove quotes
+        }
+    }
+
+    return { command, args };
+}
+
+export const executeShellCommand = async (command: string) => {
+    console.log(command);
+    const output = execSync(command, {
+        env: {...process.env, OUTPUT: stepOutput}
+    });
+    console.log(output.toString());
+}
+
+export const spawnShellCommand = async (command: string) => {
     return new Promise<void>((resolve, reject) => {
-        const childProcess = spawn(command, args, {
+        const childProcess = spawn(command, {
             env: {...process.env, OUTPUT: stepOutput}
         });
 
