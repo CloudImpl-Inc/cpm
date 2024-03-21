@@ -11,12 +11,12 @@ const init: WorkflowInit = (ctx, name, workflow) => {
                 inputs: options
             }
 
-            workflow.steps.forEach(s => {
+            for (const s of workflow.steps) {
                 writeJson(stepOutput, {});
                 const shellCmd = parseShellCommand(s.run, params);
-                executeShellCommand(shellCmd);
+                await executeShellCommand(shellCmd);
                 addMapKey(params, [s.id, 'outputs'], readJson(stepOutput, {}));
-            })
+            }
 
             // Enable nested workflow
             const result: Record<string, string> = {};

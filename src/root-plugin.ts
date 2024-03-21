@@ -37,16 +37,16 @@ const init: CPMPluginCreator = ctx => {
 
                 return {};
             },
-            "sync": (ctx, input) => {
+            "sync": async (ctx, input) => {
                 if (isProjectRepo) {
-                    executeShellCommand('npm install');
+                    await executeShellCommand('npm install');
                 } else {
                     throw new Error('not a project folder');
                 }
 
                 return {};
             },
-            "plugin add": (ctx, input) => {
+            "plugin add": async (ctx, input) => {
                 const plugin = input.args.plugin;
 
                 if (input.options.global) {
@@ -55,7 +55,7 @@ const init: CPMPluginCreator = ctx => {
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (!plugins.includes(plugin)) {
-                        executeShellCommand(`npm install ${plugin} --save-dev`);
+                        await executeShellCommand(`npm install ${plugin} --save-dev`);
                         plugins.push(plugin);
                         writeYaml(globalConfigFilePath, config);
                     }
@@ -64,7 +64,7 @@ const init: CPMPluginCreator = ctx => {
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (!plugins.includes(plugin)) {
-                        executeShellCommand(`npm install ${plugin} --save-dev`);
+                        await executeShellCommand(`npm install ${plugin} --save-dev`);
                         plugins.push(plugin);
                         writeYaml(configFilePath, config);
                     }
@@ -74,7 +74,7 @@ const init: CPMPluginCreator = ctx => {
 
                 return {};
             },
-            "plugin remove": (ctx, input) => {
+            "plugin remove": async (ctx, input) => {
                 const plugin = input.args.plugin;
 
                 if (input.options.global) {
@@ -83,7 +83,7 @@ const init: CPMPluginCreator = ctx => {
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (plugins.includes(plugin)) {
-                        executeShellCommand(`npm uninstall ${plugin} --save-dev`);
+                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`);
 
                         const index = plugins.indexOf(plugin);
                         if (index > -1) {
@@ -97,7 +97,7 @@ const init: CPMPluginCreator = ctx => {
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (plugins.includes(plugin)) {
-                        executeShellCommand(`npm uninstall ${plugin} --save-dev`);
+                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`);
 
                         const index = plugins.indexOf(plugin);
                         if (index > -1) {

@@ -1,7 +1,7 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, ActionOutput, CommandDef, CPMContext, Workflow} from "./index";
 import {Command} from "commander";
-import {execSync} from "child_process";
+import {spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 
@@ -140,10 +140,38 @@ export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): 
     return cmd.replace(placeHolder, param);
 }
 
-export const executeShellCommand = (cmd: string) => {
-    console.log(cmd);
-    const buffer = execSync(cmd, {env: {...process.env, OUTPUT: stepOutput}});
-    console.log(buffer.toString());
+export const executeShellCommand = async (commandString: string) => {
+    console.log(commandString);
+
+    const parts = commandString.trim().split(/\s+/);
+    const command = parts[0];
+    const args = parts.slice(1);
+
+    return new Promise<void>((resolve, reject) => {
+        const childProcess = spawn(command, args, {
+            env: {...process.env, OUTPUT: stepOutput}
+        });
+
+        childProcess.stdout.on('data', (data) => {
+            process.stdout.write(data); // Output stdout data directly to stdout
+        });
+
+        childProcess.stderr.on('data', (data) => {
+            process.stderr.write(data); // Output stderr data directly to stderr
+        });
+
+        childProcess.on('error', (error) => {
+            reject(error); // Reject promise if there's an error
+        });
+
+        childProcess.on('close', (code) => {
+            if (code === 0) {
+                resolve(); // Resolve promise when command completes successfully
+            } else {
+                reject(new Error(`Command exited with code ${code}`)); // Reject promise if command exits with non-zero code
+            }
+        });
+    });
 }
 
 export type TreeNode<T> = {
