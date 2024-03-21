@@ -9,6 +9,29 @@ const commands: Record<string, CommandDef> = {
     },
     "task list": {
         description: "list tasks",
+        options: {
+            "assigned": {
+                shortName: "a",
+                description: "only get tasks assigned to current user"
+            }
+        }
+    },
+    "task select": {
+        description: "select task from list",
+        options: {
+            "assigned": {
+                shortName: "a",
+                description: "only get tasks assigned to current user"
+            }
+        },
+        outputs: {
+            "id": {
+                description: "task id"
+            },
+            "title": {
+                description: "task title"
+            }
+        }
     },
     "task get": {
         description: "get task with id",

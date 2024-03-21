@@ -205,7 +205,7 @@ export const parseCommand = (command: Command, def: CommandDef, action: CommandA
         }
 
         const actionOpts: any = (optNames.length > 0)
-            ? args[args.length - 1]
+            ? args[argNames.length]
             : {};
 
         await executeCommand(action, {args: actionArgs, options: actionOpts}, outputNames);
