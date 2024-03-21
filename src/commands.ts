@@ -88,7 +88,8 @@ const commands: Record<string, CommandDef> = {
         options: {
             "branch": {
                 shortName: "b",
-                description: "branch name to checkout"
+                description: "branch name to checkout",
+                valueRequired: true
             }
         }
     },

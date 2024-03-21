@@ -221,7 +221,13 @@ export const parseCommand = (command: Command, def: CommandDef, action: CommandA
 
     for (const name of Object.keys(optDefs)) {
         const def = optDefs[name];
-        command.option(`-${def.shortName}, --${name}`, def.description);
+        let optionStr = `-${def.shortName}, --${name}`;
+
+        if (def.valueRequired) {
+            optionStr += ` <${name}>`;
+        }
+
+        command.option(optionStr, def.description);
     }
 
     command.action(async (...args) => {

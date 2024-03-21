@@ -49,6 +49,7 @@ export type ArgumentDef = {
 export type OptionDef = {
     shortName?: string;
     description?: string;
+    valueRequired?: boolean
 };
 
 export type OutputDef = {

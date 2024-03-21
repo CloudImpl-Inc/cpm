@@ -121,6 +121,11 @@ const run = async () => {
     }
 
     const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
+    globalConfig.globalPlugins = globalConfig.plugins;
+    delete globalConfig.plugins;
+    globalConfig.globalWorkflows = globalConfig.workflows;
+    delete globalConfig.workflows;
+
     const globalVariables: Record<string, string> = readJson(globalVariablesFilePath, {});
     const globalSecrets: Record<string, string> = readJson(globalSecretsFilePath, {});
 
@@ -138,8 +143,6 @@ const run = async () => {
     const config: Record<string, any> = {};
     Object.assign(config, globalConfig);
     Object.assign(config, localConfig);
-    config.globalPlugins = globalConfig.plugins;
-    config.globalWorkflows = globalConfig.workflows;
 
     const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
