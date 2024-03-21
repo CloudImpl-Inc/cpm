@@ -175,14 +175,16 @@ const run = async () => {
         await loadWorkflow(program, config, localVariables, localSecrets, name, config.workflows[name]);
     }
 
-    program.exitOverride(() => {
+    const cleanup = () => {
         writeJson(globalVariablesFilePath, globalVariables);
         writeJson(globalSecretsFilePath, globalSecrets);
         if (isProjectRepo) {
             writeJson(variablesFilePath, localVariables);
             writeJson(secretsFilePath, localSecrets);
         }
-    })
+    }
+
+    process.on('exit', cleanup);
 
     program
         .on('command:*', function () {
