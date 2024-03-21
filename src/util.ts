@@ -109,6 +109,8 @@ export const executeCommand = async (action: CommandAction, input: ActionInput, 
         if (stepOutput && stepOutput !== '') {
             writeJson(stepOutput, filteredResult);
         }
+
+        process.exit(0);
     } else {
         throw Error('command implementation not found');
     }
