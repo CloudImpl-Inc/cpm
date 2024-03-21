@@ -7,6 +7,25 @@ const commands: Record<string, CommandDef> = {
     "list": {
         description: "list projects"
     },
+    "find": {
+        description: "find repository cloned path. this will output first found repository with search pattern",
+        arguments: {
+            "query": {
+                description: "pattern to search ex: cpm find Cloudimpl-Inc/cpm"
+            }
+        },
+        outputs: {
+            "org": {
+                description: "organization name extracted from url"
+            },
+            "repo": {
+                description: "repo name extracted from url"
+            },
+            "path": {
+                description: "locally cloned directory"
+            }
+        }
+    },
     "sync": {
         description: "sync project (sync plugins)"
     },

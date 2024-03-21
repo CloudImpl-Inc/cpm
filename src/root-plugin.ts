@@ -1,4 +1,4 @@
-import {CPMConfig, CPMPluginCreator} from "./index";
+import {ActionOutput, CPMConfig, CPMPluginCreator} from "./index";
 import {readdirSync} from "fs";
 import {
     computeIfNotExist, configFilePath,
@@ -25,12 +25,33 @@ const init: CPMPluginCreator = ctx => {
                 }
                 return {};
             },
+            "find": (ctx, input): ActionOutput => {
+                const {query} = input.args;
+
+                for (const orgDir of readdirSync(ctx.config.rootDir, {withFileTypes: true})) {
+                    if (!orgDir.isDirectory()) {
+                        continue;
+                    }
+
+                    for (const repoDir of readdirSync(`${orgDir.path}/${orgDir.name}`, {withFileTypes: true})) {
+                        const path = `${repoDir.path}/${repoDir.name}`;
+
+                        if (orgDir.isDirectory() && path.toLowerCase().endsWith(query.toLowerCase())) {
+                            const [org, repo] = path.split('/').slice(-2);
+                            console.log(path);
+                            return {org, repo, path};
+                        }
+                    }
+                }
+
+                return {};
+            },
             "list": (ctx, input) => {
-                readdirSync(ctx.config.rootDir, { withFileTypes: true })
+                readdirSync(ctx.config.rootDir, {withFileTypes: true})
                     .filter(orgDir => orgDir.isDirectory())
                     .forEach(orgDir => {
                         console.log(`|--${orgDir.name}`)
-                        readdirSync(`${orgDir.path}/${orgDir.name}`, { withFileTypes: true })
+                        readdirSync(`${orgDir.path}/${orgDir.name}`, {withFileTypes: true})
                             .filter(repoDir => repoDir.isDirectory())
                             .forEach(repoDir => console.log(`|  |--${repoDir.name} => ${repoDir.path}/${repoDir.name}`))
                     })
