@@ -1,4 +1,4 @@
-import {CPMPluginCreator} from "./index";
+import {CPMConfig, CPMPluginCreator} from "./index";
 import {readdirSync} from "fs";
 import {
     computeIfNotExist, configFilePath,
@@ -13,6 +13,18 @@ const init: CPMPluginCreator = ctx => {
     return {
         name: "cpm/root",
         actions: {
+            "init": (ctx, input) => {
+                if (isProjectRepo) {
+                    console.log('already initialized');
+                } else {
+                    const config: CPMConfig = {
+                        plugins: []
+                    }
+                    writeYaml(configFilePath, config);
+                    console.log('cpm project initialized');
+                }
+                return {};
+            },
             "list": (ctx, input) => {
                 readdirSync(ctx.config.rootDir, { withFileTypes: true })
                     .filter(orgDir => orgDir.isDirectory())

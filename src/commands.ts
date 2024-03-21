@@ -1,6 +1,9 @@
 import {CommandDef} from "./index";
 
 const commands: Record<string, CommandDef> = {
+    "init": {
+        description: "initialized cpm project"
+    },
     "list": {
         description: "list projects"
     },
