@@ -144,20 +144,23 @@ const run = async () => {
     Object.assign(config, globalConfig);
     Object.assign(config, localConfig);
 
+    const variables = isProjectRepo ? localVariables : globalVariables;
+    const secrets = isProjectRepo ? localSecrets : globalSecrets;
+
     const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
 
     // Register root plugin
-    await loadPlugin(commands, actions, config, globalVariables, globalSecrets, "cpm/root", RootPlugin);
+    await loadPlugin(commands, actions, config, variables, secrets, "cpm/root", RootPlugin);
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        await loadDynamicPlugin(commands, actions, config, globalVariables, globalSecrets, globalPluginRoot, p);
+        await loadDynamicPlugin(commands, actions, config, variables, secrets, globalPluginRoot, p);
     }
 
     // Register local plugins
     for (const p of (config?.plugins || [])) {
-        await loadDynamicPlugin(commands, actions, config, localVariables, localSecrets, pluginRoot, p);
+        await loadDynamicPlugin(commands, actions, config, variables, secrets, pluginRoot, p);
     }
 
     // Register commands
@@ -170,12 +173,12 @@ const run = async () => {
 
     // Register global workflows
     for (const name of Object.keys(config?.globalWorkflows || {})) {
-        await loadWorkflow(program, config, globalVariables, globalSecrets, name, config.globalWorkflows[name]);
+        await loadWorkflow(program, config, variables, secrets, name, config.globalWorkflows[name]);
     }
 
     // Register local workflows
     for (const name of Object.keys(config?.workflows || {})) {
-        await loadWorkflow(program, config, localVariables, localSecrets, name, config.workflows[name]);
+        await loadWorkflow(program, config, variables, secrets, name, config.workflows[name]);
     }
 
     const cleanup = () => {
