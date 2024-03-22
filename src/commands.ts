@@ -112,6 +112,17 @@ const commands: Record<string, CommandDef> = {
             }
         }
     },
+    "pr create": {
+        description: "create pull request / merge request (currently only support interactive mode)",
+        arguments: {
+            "head": {
+                description: "head branch name"
+            },
+            "base": {
+                description: "base branch name"
+            }
+        },
+    },
     "plugin add": {
         description: "install cpm plugin",
         arguments: {
@@ -128,6 +139,20 @@ const commands: Record<string, CommandDef> = {
     },
     "plugin remove": {
         description: "uninstall cpm plugin",
+        arguments: {
+            "plugin": {
+                description: "plugin name"
+            }
+        },
+        options: {
+            "global": {
+                shortName: "g",
+                description: "install plugin globally"
+            }
+        }
+    },
+    "plugin configure": {
+        description: "configure cpm plugin",
         arguments: {
             "plugin": {
                 description: "plugin name"

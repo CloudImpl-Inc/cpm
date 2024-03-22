@@ -1,10 +1,10 @@
 import {Command} from "commander";
-import {CommandDef, CPMContext, CPMPluginCreator, Workflow} from ".";
+import {Action, CommandDef, CPMContext, CPMPluginCreator, Workflow} from ".";
 import {
     CommandAction,
     computeIfNotExist,
     configFilePath, convertFlatToTree,
-    createFolder,
+    createFolder, createWorkflowCommand,
     defaultProjectsRootPath, folderPath,
     globalConfigFilePath,
     globalFolderPath,
@@ -13,49 +13,67 @@ import {
     isProjectRepo, parseCommand,
     pluginRoot,
     readJson,
-    readYaml,
+    readYaml, runWorkflow,
     secretsFilePath, TreeNode, variablesFilePath,
     writeJson,
     writeYaml
 } from "./util";
 import RootPlugin from './root-plugin';
 import cpmCommands from './commands';
-import WorkflowInit from "./workflow";
 import {existsSync} from "fs";
 
 const getNamespace = (data: any, namespace: string) => {
     return computeIfNotExist(data, namespace, {});
 }
 
-const loadDynamicPlugin = async (commands: Record<string, CommandDef>, actions: Record<string, CommandAction>,
-                                 config: Record<string, any>, variables: Record<string, string>, secrets: Record<string, string>,
+const loadDynamicPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
+                                 variables: Record<string, string>, secrets: Record<string, string>,
                                  pluginRoot: string, pluginName: string) => {
     const pluginPath = `${pluginRoot}/${pluginName}`;
 
     try {
         const pluginCreator = ((await import(`${pluginRoot}/${pluginName}`)).default as CPMPluginCreator);
-        await loadPlugin(commands, actions, config, variables, secrets, pluginName, pluginCreator);
+        await loadPlugin(actions, config, variables, secrets, pluginName, pluginCreator);
     } catch (err) {
         console.error(`error loading plugin ${pluginPath}`);
         console.error(err);
     }
 }
 
-const loadPlugin = async (commands: Record<string, CommandDef>, actions: Record<string, CommandAction>,
-                          config: Record<string, any>, variables: Record<string, string>, secrets: Record<string, string>,
+const loadPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
+                          variables: Record<string, string>, secrets: Record<string, string>,
                           pluginName: string, pluginCreator: CPMPluginCreator) => {
     const ctx: CPMContext = {
         config: Object.freeze(config),
         variables: getNamespace(variables, `plugin:${pluginName}`),
-        secrets: getNamespace(secrets, `plugin:${pluginName}`),
+        secrets: getNamespace(secrets, `plugin:${pluginName}`)
     }
 
     const plugin = await pluginCreator(ctx);
+    const configure: Action = plugin.configure || ((ctx, input) => {
+        console.log('nothing to configure');
+        return {};
+    });
 
-    const pluginCommands = plugin.commands || {};
-    Object.keys(pluginCommands).forEach(command => {
-        commands[`${plugin.name} ${command}`] = pluginCommands[command];
+    actions[`${pluginName} configure`] = async (input) => await configure(ctx, input);
+
+    Object.keys(plugin.actions).forEach(command => {
+        const action = plugin.actions[command];
+        actions[command] = async (input) => await action(ctx, input);
     })
+}
+
+const loadRootPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
+                              variables: Record<string, string>, secrets: Record<string, string>) => {
+    const rootPluginName = '@cloudimpl-inc/cpm-root';
+
+    const ctx: CPMContext = {
+        config: Object.freeze(config),
+        variables: getNamespace(variables, `plugin:${rootPluginName}`),
+        secrets: getNamespace(secrets, `plugin:${rootPluginName}`)
+    }
+
+    const plugin = await RootPlugin(actions);
 
     Object.keys(plugin.actions).forEach(command => {
         const action = plugin.actions[command];
@@ -78,19 +96,6 @@ const loadCommand = async (actions: Record<string, any>, name: string, targetAct
     }
 
     return command;
-}
-
-const loadWorkflow = async (program: Command, config: Record<string, any>,
-                            variables: Record<string, string>, secrets: Record<string, string>,
-                            workflowName: string, workflow: Workflow) => {
-    const ctx: CPMContext = {
-        config: Object.freeze(config),
-        variables: getNamespace(variables, `workflow:${workflowName}`),
-        secrets: getNamespace(secrets, `workflow:${workflowName}`),
-    }
-
-    const c = await WorkflowInit(ctx, workflowName, workflow)
-    program.addCommand(c);
 }
 
 const loadLibVersion = async (): Promise<string> => {
@@ -150,18 +155,33 @@ const run = async () => {
     const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
 
-    // Register root plugin
-    await loadPlugin(commands, actions, config, variables, secrets, "cpm/root", RootPlugin);
-
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        await loadDynamicPlugin(commands, actions, config, variables, secrets, globalPluginRoot, p);
+        await loadDynamicPlugin(actions, config, variables, secrets, globalPluginRoot, p);
     }
 
     // Register local plugins
     for (const p of (config?.plugins || [])) {
-        await loadDynamicPlugin(commands, actions, config, variables, secrets, pluginRoot, p);
+        await loadDynamicPlugin(actions, config, variables, secrets, pluginRoot, p);
     }
+
+    // Register root plugin
+    // Root plugin register at last
+    await loadRootPlugin(actions, config, variables, secrets);
+
+    // Register global workflows
+    const globalWorkflows: Record<string, Workflow> = config.globalWorkflows;
+    Object.entries(globalWorkflows).forEach(([key, value]) => {
+        commands[`exec ${key}`] = createWorkflowCommand(value);
+        actions[`exec ${key}`] = input => runWorkflow(value, input);
+    });
+
+    // Register local workflows
+    const workflows: Record<string, Workflow> = config.workflows;
+    Object.entries(workflows).forEach(([key, value]) => {
+        commands[`exec ${key}`] = createWorkflowCommand(value);
+        actions[`exec ${key}`] = input => runWorkflow(value, input);
+    });
 
     // Register commands
     const commandNodes = convertFlatToTree(commands).children;
@@ -169,16 +189,6 @@ const run = async () => {
         const node: TreeNode<CommandDef> = commandNodes[name];
         const command = await loadCommand(actions, name, name, node);
         program.addCommand(command);
-    }
-
-    // Register global workflows
-    for (const name of Object.keys(config?.globalWorkflows || {})) {
-        await loadWorkflow(program, config, variables, secrets, name, config.globalWorkflows[name]);
-    }
-
-    // Register local workflows
-    for (const name of Object.keys(config?.workflows || {})) {
-        await loadWorkflow(program, config, variables, secrets, name, config.workflows[name]);
     }
 
     const cleanup = () => {

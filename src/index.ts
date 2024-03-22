@@ -10,9 +10,9 @@ export type CPMContext = {
     secrets: CPMSecrets,
 }
 
-export type ActionArgs = Record<string, any>;
+export type ActionArgs = Record<string, string>;
 
-export type ActionOptions = Record<string, any>;
+export type ActionOptions = Record<string, string>;
 
 export type ActionInput = {
     args: ActionArgs,
@@ -25,7 +25,7 @@ export type Action = (ctx: CPMContext, input: ActionInput) => ActionOutput | Pro
 
 export type CPMPlugin = {
     name: string,
-    commands?: Record<string, CommandDef>,
+    configure?: Action,
     actions: Record<string, Action>,
 }
 
@@ -37,9 +37,10 @@ export type WorkflowStep = {
 }
 
 export type Workflow = {
-    inputs: string[];
+    inputs?: string[];
+    description?: string;
     steps: WorkflowStep[];
-    outputs: Record<string, string>
+    outputs?: Record<string, string>
 }
 
 export type ArgumentDef = {

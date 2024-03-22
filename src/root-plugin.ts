@@ -1,6 +1,7 @@
-import {ActionOutput, CPMConfig, CPMPluginCreator} from "./index";
+import {ActionOutput, CPMConfig, CPMPlugin, CPMPluginCreator} from "./index";
 import {readdirSync} from "fs";
 import {
+    CommandAction,
     computeIfNotExist, configFilePath,
     executeShellCommand,
     globalConfigFilePath,
@@ -9,9 +10,11 @@ import {
     readYaml, writeYaml
 } from "./util";
 
-const init: CPMPluginCreator = ctx => {
+type RootPluginCreator = (actions: Record<string, CommandAction>) => CPMPlugin | Promise<CPMPlugin>;
+
+const init: RootPluginCreator = actions => {
     return {
-        name: "cpm/root",
+        name: "root",
         actions: {
             "init": (ctx, input) => {
                 if (isProjectRepo) {
@@ -132,6 +135,10 @@ const init: CPMPluginCreator = ctx => {
                 }
 
                 return {};
+            },
+            "plugin configure": async (ctx, input) => {
+                const plugin = input.args.plugin;
+                return actions[`${plugin} configure`]({args: {}, options: {}});
             }
         }
     }

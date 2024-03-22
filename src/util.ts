@@ -1,9 +1,10 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, ActionOutput, CommandDef, CPMContext, Workflow} from "./index";
+import {ActionInput, ActionOutput, CommandDef, CPMContext, CPMPlugin, Workflow} from "./index";
 import {Command} from "commander";
-import {execSync, spawn} from "child_process";
+import {execSync} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
+import * as fs from "fs";
 
 export const cwd = process.cwd();
 export const configFilePath = `${cwd}/cpm.yml`;
@@ -22,8 +23,8 @@ export const globalPluginRoot = `${globalFolderPath}/node_modules`;
 export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
 
 export const stepOutput = isProjectRepo
-    ? `${cwd}/.cpm/output.json`
-    : `${globalFolderPath}/output.json`
+    ? `${cwd}/.cpm/output.txt`
+    : `${globalFolderPath}/output.txt`
 
 export const createFolder = (path: string): void => {
     if (!existsSync(path)){
@@ -100,34 +101,39 @@ export const addMapKey = (map: any, key: string[], value: any): void => {
 }
 
 export const executeCommand = async (action: CommandAction, input: ActionInput, outputKeys: string[]) => {
+    // ensure output file is empty
+    fs.writeFileSync(stepOutput, '');
+
     if (action !== undefined) {
         const result = await action(input);
         const filteredResult: ActionOutput = {};
         outputKeys.forEach(k => filteredResult[k] = result[k]);
 
-        const stepOutput = process.env.OUTPUT;
-        if (stepOutput && stepOutput !== '') {
-            writeJson(stepOutput, filteredResult);
+        const stream = fs.createWriteStream(stepOutput);
+
+        for (const [key, value] of Object.entries(filteredResult)) {
+            stream.write(`${key}=${value}\n`);
         }
 
+        stream.end();
         process.exit(0);
     } else {
         throw Error('command implementation not found');
     }
 }
 
-export const parseShellCommand = (cmd: string, params: any): string => {
-    let updatedCmd = cmd;
-    let start = updatedCmd.indexOf('{{', 0);
+export const parseString = (str: string, params: any): string => {
+    let updatedStr = str;
+    let start = updatedStr.indexOf('{{', 0);
 
     while (start !== -1) {
-        const end = updatedCmd.indexOf('}}', start);
-        const placeHolder = updatedCmd.substring(start, end + 2);
-        updatedCmd = fillPlaceHolder(updatedCmd, placeHolder, params);
-        start = updatedCmd.indexOf('{{', 0);
+        const end = updatedStr.indexOf('}}', start);
+        const placeHolder = updatedStr.substring(start, end + 2);
+        updatedStr = fillPlaceHolder(updatedStr, placeHolder, params);
+        start = updatedStr.indexOf('{{', 0);
     }
 
-    return updatedCmd;
+    return updatedStr;
 }
 
 export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): string => {
@@ -140,55 +146,21 @@ export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): 
     return cmd.replace(placeHolder, param);
 }
 
-export const splitCommandString = (commandString: string): { command: string, args: string[] } => {
-    const parts = commandString.split(/\s+/); // Split by spaces
-    const command = parts[0];
-    const args = parts.slice(1);
+export const executeShellCommand = async (command: string) => {
+    console.log(command);
+    const output = execSync(command, {env: {...process.env}});
+    console.log(output.toString());
 
-    // Handling quoted arguments
-    for (let i = 0; i < args.length; i++) {
-        if (args[i].startsWith('"') && args[i].endsWith('"')) {
-            args[i] = args[i].slice(1, -1); // Remove quotes
+    const data: Record<string, string> = {};
+    const lines = fs.readFileSync(stepOutput, 'utf-8').split('\n');
+    for (const line of lines) {
+        const [key, value] = line.split('=');
+        if (key && value) {
+            data[key.trim()] = value.trim();
         }
     }
 
-    return { command, args };
-}
-
-export const executeShellCommand = async (command: string) => {
-    console.log(command);
-    const output = execSync(command, {
-        env: {...process.env, OUTPUT: stepOutput}
-    });
-    console.log(output.toString());
-}
-
-export const spawnShellCommand = async (command: string) => {
-    return new Promise<void>((resolve, reject) => {
-        const childProcess = spawn(command, {
-            env: {...process.env, OUTPUT: stepOutput}
-        });
-
-        childProcess.stdout.on('data', (data) => {
-            process.stdout.write(data); // Output stdout data directly to stdout
-        });
-
-        childProcess.stderr.on('data', (data) => {
-            process.stderr.write(data); // Output stderr data directly to stderr
-        });
-
-        childProcess.on('error', (error) => {
-            reject(error); // Reject promise if there's an error
-        });
-
-        childProcess.on('close', (code) => {
-            if (code === 0) {
-                resolve(); // Resolve promise when command completes successfully
-            } else {
-                reject(new Error(`Command exited with code ${code}`)); // Reject promise if command exits with non-zero code
-            }
-        });
-    });
+    return data;
 }
 
 export type TreeNode<T> = {
@@ -260,9 +232,41 @@ export const parseCommand = (command: Command, def: CommandDef, action: CommandA
             : {};
 
         await executeCommand(action, {args: actionArgs, options: actionOpts}, outputNames);
+    });
+}
+
+export const createWorkflowCommand = (workflow: Workflow) => {
+    const def: CommandDef = {
+        description: workflow.description,
+        options: {}
+    }
+
+    workflow.inputs?.forEach(arg => {
+        // @ts-ignore
+        def.options[arg] = {}
+    });
+
+    return def;
+}
+
+export const runWorkflow = async (workflow: Workflow, input: ActionInput) => {
+    const params: any = {
+        inputs: input.options
+    }
+
+    for (const s of workflow.steps) {
+        const shellCmd = parseString(s.run, params);
+        const output = await executeShellCommand(shellCmd);
+        addMapKey(params, [s.id, 'outputs'], output);
+    }
+
+    // Enable nested workflow
+    const result: Record<string, string> = {};
+    Object.entries(workflow.outputs || []).forEach(([key, value]) => {
+        result[key] = parseString(value, params);
     })
+
+    return result;
 }
 
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;
-
-export type WorkflowInit = (ctx: CPMContext, name: string, workflow: Workflow) => Command | Promise<Command>;
