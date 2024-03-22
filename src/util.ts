@@ -109,13 +109,12 @@ export const executeCommand = async (action: CommandAction, input: ActionInput, 
         const filteredResult: ActionOutput = {};
         outputKeys.forEach(k => filteredResult[k] = result[k]);
 
-        const stream = fs.createWriteStream(stepOutput);
-
+        let outputKeyVal = '';
         for (const [key, value] of Object.entries(filteredResult)) {
-            stream.write(`${key}=${value}\n`);
+            outputKeyVal += `${key}=${value}\n`;
         }
 
-        stream.end();
+        fs.writeFileSync(stepOutput, outputKeyVal);
         process.exit(0);
     } else {
         throw Error('command implementation not found');
