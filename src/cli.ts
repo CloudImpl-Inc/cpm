@@ -170,14 +170,14 @@ const run = async () => {
     await loadRootPlugin(actions, config, variables, secrets);
 
     // Register global workflows
-    const globalWorkflows: Record<string, Workflow> = config.globalWorkflows;
+    const globalWorkflows: Record<string, Workflow> = config.globalWorkflows || [];
     Object.entries(globalWorkflows).forEach(([key, value]) => {
         commands[`exec ${key}`] = createWorkflowCommand(value);
         actions[`exec ${key}`] = input => runWorkflow(value, input);
     });
 
     // Register local workflows
-    const workflows: Record<string, Workflow> = config.workflows;
+    const workflows: Record<string, Workflow> = config.workflows || [];
     Object.entries(workflows).forEach(([key, value]) => {
         commands[`exec ${key}`] = createWorkflowCommand(value);
         actions[`exec ${key}`] = input => runWorkflow(value, input);
