@@ -160,7 +160,10 @@ export const executeShellCommand = async (command: string) => {
         }
     }
 
-    return [result, output.toString()];
+    return {
+        result,
+        output: output.toString()
+    };
 }
 
 export type TreeNode<T> = {
@@ -256,7 +259,7 @@ export const runWorkflow = async (workflow: Workflow, input: ActionInput) => {
 
     for (const s of workflow.steps) {
         const shellCmd = parseString(s.run, params);
-        const [result, _] = await executeShellCommand(shellCmd);
+        const {result} = await executeShellCommand(shellCmd);
         addMapKey(params, [s.id, 'outputs'], result);
     }
 
