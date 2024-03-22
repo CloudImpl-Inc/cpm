@@ -68,6 +68,9 @@ const commands: Record<string, CommandDef> = {
             },
             "title": {
                 description: "task title"
+            },
+            "status": {
+                description: "task status"
             }
         }
     },
@@ -164,6 +167,23 @@ const commands: Record<string, CommandDef> = {
                 description: "install plugin globally"
             }
         }
+    },
+    "flow configure": {
+        description: "configure cpm flow"
+    },
+    "flow setup": {
+        description: "make repository ready to use cpm flow (every new clone should run this)"
+    },
+    "flow checkout": {
+        description: "checkout issue to start development",
+        arguments: {
+            taskId: {
+                description: "task id to checkout"
+            }
+        }
+    },
+    "flow submit": {
+        description: "create pr for issue for current working issue"
     }
 };
 

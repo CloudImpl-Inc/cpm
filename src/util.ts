@@ -148,19 +148,19 @@ export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): 
 
 export const executeShellCommand = async (command: string) => {
     console.log(command);
-    const output = execSync(command, {env: {...process.env}});
+    const output = execSync(command, {env: {...process.env, OUTPUT: stepOutput}});
     console.log(output.toString());
 
-    const data: Record<string, string> = {};
+    const result: Record<string, string> = {};
     const lines = fs.readFileSync(stepOutput, 'utf-8').split('\n');
     for (const line of lines) {
         const [key, value] = line.split('=');
         if (key && value) {
-            data[key.trim()] = value.trim();
+            result[key.trim()] = value.trim();
         }
     }
 
-    return data;
+    return [result, output.toString()];
 }
 
 export type TreeNode<T> = {
@@ -256,8 +256,8 @@ export const runWorkflow = async (workflow: Workflow, input: ActionInput) => {
 
     for (const s of workflow.steps) {
         const shellCmd = parseString(s.run, params);
-        const output = await executeShellCommand(shellCmd);
-        addMapKey(params, [s.id, 'outputs'], output);
+        const [result, _] = await executeShellCommand(shellCmd);
+        addMapKey(params, [s.id, 'outputs'], result);
     }
 
     // Enable nested workflow
