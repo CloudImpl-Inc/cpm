@@ -7,8 +7,9 @@ import {
     globalConfigFilePath,
     globalFolderPath,
     isProjectRepo,
-    readYaml, writeYaml
+    readYaml, writeJson, writeYaml
 } from "./util";
+import path from "path";
 
 type RootPluginCreator = (actions: Record<string, CommandAction>) => CPMPlugin | Promise<CPMPlugin>;
 
@@ -23,7 +24,8 @@ const init: RootPluginCreator = actions => {
                     const config: CPMConfig = {
                         plugins: []
                     }
-                    writeYaml(configFilePath, config);
+                    writeYaml(configFilePath, config)
+                    writeJson(path.join(folderPath, 'package.json'), {})
                     console.log('cpm project initialized');
                 }
                 return {};

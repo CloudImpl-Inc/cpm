@@ -21,6 +21,7 @@ import {
 import RootPlugin from './root-plugin';
 import cpmCommands from './commands';
 import {existsSync} from "fs";
+import path from "path";
 
 const getNamespace = (data: any, namespace: string) => {
     return computeIfNotExist(data, namespace, {});
@@ -122,6 +123,7 @@ const run = async () => {
             rootDir: defaultProjectsRootPath
         };
         writeYaml(globalConfigFilePath, initialConfig);
+        writeJson(path.join(globalFolderPath, 'package.json'), {})
     }
 
     const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
