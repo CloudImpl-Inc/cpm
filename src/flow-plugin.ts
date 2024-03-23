@@ -93,6 +93,11 @@ const flowCheckout: Action = async (ctx, input) => {
         return {};
     }
 
+    if (!ctx.config.flow?.defaultBranch || !ctx.config.flow?.productionBranch) {
+        console.log(chalk.yellow('cpm flow not configured, please run cpm flow configure'));
+        return {};
+    }
+
     let taskId;
     if (input.options.taskId) {
         taskId = input.options.taskId;
@@ -101,7 +106,7 @@ const flowCheckout: Action = async (ctx, input) => {
         taskId = task.id;
     }
 
-    const defaultBranch = ctx.variables.defaultBranch;
+    const defaultBranch = ctx.config.flow.defaultBranch;
     const {result: {currentBranch, changesPending}} = await executeShellCommand('cpm repo info');
 
     const {result: task} = await executeShellCommand(`cpm task get ${taskId}`);
@@ -135,13 +140,13 @@ const flowCheckout: Action = async (ctx, input) => {
     }
 
     if (task.status === taskStatus.PENDING) {
-        await executeShellCommand(`cpm repo checkout ${defaultBranch} && cpm repo sync`);
-        await executeShellCommand(`cpm repo checkout ${branchName}`);
+        await executeShellCommand(`cpm repo checkout --branch ${defaultBranch} && cpm repo sync`);
+        await executeShellCommand(`cpm repo checkout --branch ${branchName}`);
         await executeShellCommand(`cpm task status ${taskId} '${taskStatus.IN_PROGRESS}'`);
     } else if (task.status === taskStatus.IN_PROGRESS || taskStatus.IN_REVIEW) {
-        await executeShellCommand(`cpm repo checkout ${branchName} && cpm repo sync`);
+        await executeShellCommand(`cpm repo checkout --branch ${branchName} && cpm repo sync`);
     } else if (task.status === taskStatus.REJECTED) {
-        await executeShellCommand(`cpm repo checkout ${defaultBranch} && cpm repo sync`);
+        await executeShellCommand(`cpm repo checkout --branch ${defaultBranch} && cpm repo sync`);
         await executeShellCommand(`cpm task status ${taskId} '${taskStatus.IN_PROGRESS}'`);
     }
 
@@ -154,7 +159,12 @@ const flowSubmit: Action = async (ctx, input) => {
         return {};
     }
 
-    const defaultBranch = ctx.variables.defaultBranch;
+    if (!ctx.config.flow?.defaultBranch || !ctx.config.flow?.productionBranch) {
+        console.log(chalk.yellow('cpm flow not configured, please run cpm flow configure'));
+        return {};
+    }
+
+    const defaultBranch = ctx.config.flow.defaultBranch;
     const {result: {currentBranch, changesPending}} = await executeShellCommand('cpm repo info');
 
     if (!currentBranch.startsWith('feature/TASK')) {
