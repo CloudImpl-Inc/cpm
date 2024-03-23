@@ -183,6 +183,9 @@ const commands: Record<string, CommandDef> = {
     "flow setup": {
         description: "make repository ready to use cpm flow (every new clone should run this)"
     },
+    "flow select": {
+        description: "checkout issue to start development (interactive mode)"
+    },
     "flow checkout": {
         description: "checkout issue to start development",
         arguments: {
