@@ -1,6 +1,6 @@
 // language=javascript
 const script = `
-    const fs = require('fs');
+    import * as fs from "fs";
 
     // Function to read the current branch name
     function getCurrentBranchName() {
