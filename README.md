@@ -61,7 +61,7 @@ cpm plugin configure @cloudimpl-inc/cpm-clickup
 
 - **Enable cpm flow**
 ```bash
-cpm flow init
+cpm flow enable
 ```
 
 - **Checkout an issue to start development. This command supports interactive mode where you can select the task:**
