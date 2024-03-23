@@ -66,7 +66,7 @@ const loadPlugin = async (actions: Record<string, CommandAction>, config: Record
 
 const loadRootPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
                               variables: Record<string, string>, secrets: Record<string, string>) => {
-    const rootPluginName = '@cloudimpl-inc/cpm-root';
+    const rootPluginName = 'root';
 
     const ctx: CPMContext = {
         config: Object.freeze(config),
