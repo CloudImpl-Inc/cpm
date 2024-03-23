@@ -1,8 +1,8 @@
 import {ActionOutput, CPMConfig, CPMPlugin, CPMPluginCreator} from "./index";
-import {readdirSync} from "fs";
+import {existsSync, readdirSync} from "fs";
 import {
     CommandAction,
-    computeIfNotExist, configFilePath,
+    computeIfNotExist, configFilePath, createFolder,
     executeShellCommand, folderPath,
     globalConfigFilePath,
     globalFolderPath,
@@ -17,15 +17,16 @@ const init: RootPluginCreator = actions => {
     return {
         name: "root",
         actions: {
-            "init": (ctx, input) => {
+            "init": async (ctx, input) => {
                 if (isProjectRepo) {
                     console.log('already initialized');
                 } else {
                     const config: CPMConfig = {
                         plugins: []
                     }
-                    writeYaml(configFilePath, config)
-                    writeJson(path.join(folderPath, 'package.json'), {})
+                    writeYaml(configFilePath, config);
+                    createFolder(folderPath);
+                    writeJson(`${folderPath}/package.json`, {});
                     console.log('cpm project initialized');
                 }
                 return {};

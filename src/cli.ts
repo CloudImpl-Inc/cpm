@@ -123,7 +123,11 @@ const run = async () => {
             rootDir: defaultProjectsRootPath
         };
         writeYaml(globalConfigFilePath, initialConfig);
-        writeJson(path.join(globalFolderPath, 'package.json'), {})
+    }
+
+    // Add global package.json
+    if (!existsSync(`${globalFolderPath}/package.json`)) {
+        writeJson(`${globalFolderPath}/package.json`, {});
     }
 
     const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
