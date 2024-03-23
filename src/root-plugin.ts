@@ -74,7 +74,7 @@ const init: RootPluginCreator = actions => {
                         await executeShellCommand(`npm install ${plugin} --save-dev`)
                     }
 
-                    if (config.cpmFlowEnabled) {
+                    if (config.flow?.enabled) {
                         await executeShellCommand('cpm flow setup');
                     }
                 } else {

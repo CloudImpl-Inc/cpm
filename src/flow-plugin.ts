@@ -97,7 +97,7 @@ const flowCheckout: Action = async (ctx, input) => {
     if (input.options.taskId) {
         taskId = input.options.taskId;
     } else {
-        const {result: task} = await executeShellCommand('cpm task select');
+        const {result: task} = await executeShellCommand('cpm task select -a');
         taskId = task.id;
     }
 
