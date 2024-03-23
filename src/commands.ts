@@ -180,6 +180,9 @@ const commands: Record<string, CommandDef> = {
             }
         }
     },
+    "flow enable": {
+        description: "enable cpm flow"
+    },
     "flow configure": {
         description: "configure cpm flow"
     },

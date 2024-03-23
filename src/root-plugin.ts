@@ -1,5 +1,5 @@
-import {ActionOutput, CPMConfig, CPMPlugin, CPMPluginCreator} from "./index";
-import {existsSync, readdirSync} from "fs";
+import {ActionOutput, CPMConfig, CPMPlugin} from "./index";
+import {readdirSync} from "fs";
 import {
     CommandAction,
     computeIfNotExist, configFilePath, createFolder,
@@ -9,7 +9,6 @@ import {
     isProjectRepo,
     readYaml, writeJson, writeYaml
 } from "./util";
-import path from "path";
 
 type RootPluginCreator = (actions: Record<string, CommandAction>) => CPMPlugin | Promise<CPMPlugin>;
 
@@ -72,6 +71,10 @@ const init: RootPluginCreator = actions => {
 
                     for (const plugin of plugins) {
                         await executeShellCommand(`npm install ${plugin} --save-dev`)
+                    }
+
+                    if (config.cpmFlowEnabled) {
+                        await executeShellCommand('cpm flow setup');
                     }
                 } else {
                     throw new Error('not a project folder');
@@ -171,6 +174,23 @@ const init: RootPluginCreator = actions => {
             "plugin configure": async (ctx, input) => {
                 const plugin = input.args.plugin;
                 return actions[`${plugin} configure`]({args: {}, options: {}});
+            },
+            "flow enable": async (ctx, input) => {
+                if (isProjectRepo) {
+                    const config = readYaml(configFilePath, {});
+
+                    if (config.cpmFlowEnabled) {
+                        console.log('cpm flow already enabled');
+                    } else {
+                        config['cpmFlowEnabled'] = true;
+                        writeYaml(configFilePath, config);
+                        await executeShellCommand('cpm flow configure');
+                    }
+                } else {
+                    throw new Error('not a project folder');
+                }
+
+                return {};
             }
         }
     }
