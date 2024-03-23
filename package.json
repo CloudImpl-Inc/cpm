@@ -1,6 +1,6 @@
 {
   "name": "@cloudimpl-inc/cpm",
-  "version": "2.16.0",
+  "version": "2.17.0",
   "description": "CloudImpl Project Manager",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

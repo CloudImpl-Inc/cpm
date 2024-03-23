@@ -196,7 +196,13 @@ const commands: Record<string, CommandDef> = {
         }
     },
     "flow submit": {
-        description: "create pr for issue for current working issue"
+        description: "create pr for issue for current working issue",
+        options: {
+            "taskId": {
+                shortName: "t",
+                description: "task id to checkout"
+            }
+        }
     }
 };
 
