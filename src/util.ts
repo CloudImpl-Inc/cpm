@@ -7,12 +7,14 @@ import * as os from "os";
 import * as fs from "fs";
 
 export const cwd = process.cwd();
-export const configFilePath = `${cwd}/cpm.yml`;
+
 export const folderPath = `${cwd}/.cpm`;
+export const configFilePath = `${cwd}/cpm.yml`;
 export const variablesFilePath = `${folderPath}/variables.json`;
 export const secretsFilePath = `${folderPath}/secrets.json`;
+export const pluginRoot = `${folderPath}/node_modules`;
+
 export const isProjectRepo = existsSync(configFilePath);
-export const pluginRoot = `${cwd}/node_modules`;
 
 export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;

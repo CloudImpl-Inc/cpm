@@ -3,7 +3,7 @@ import {readdirSync} from "fs";
 import {
     CommandAction,
     computeIfNotExist, configFilePath,
-    executeShellCommand,
+    executeShellCommand, folderPath,
     globalConfigFilePath,
     globalFolderPath,
     isProjectRepo,
@@ -63,7 +63,26 @@ const init: RootPluginCreator = actions => {
             },
             "sync": async (ctx, input) => {
                 if (isProjectRepo) {
-                    await executeShellCommand('npm install');
+                    process.chdir(folderPath);
+                    const config = readYaml(configFilePath, {})
+                    const plugins = computeIfNotExist(config, 'plugins', []);
+
+                    for (const plugin of plugins) {
+                        await executeShellCommand(`npm install ${plugin} --save-dev`)
+                    }
+                } else {
+                    throw new Error('not a project folder');
+                }
+
+                return {};
+            },
+            "plugin list": async (ctx, input) => {
+                if (input.options.global) {
+                    process.chdir(globalFolderPath);
+                    await executeShellCommand('npm list --depth=0');
+                } else if (isProjectRepo) {
+                    process.chdir(folderPath);
+                    await executeShellCommand('npm list --depth=0');
                 } else {
                     throw new Error('not a project folder');
                 }
@@ -82,8 +101,11 @@ const init: RootPluginCreator = actions => {
                         await executeShellCommand(`npm install ${plugin} --save-dev`);
                         plugins.push(plugin);
                         writeYaml(globalConfigFilePath, config);
+                    } else {
+                        console.log('plugin already installed');
                     }
                 } else if (isProjectRepo) {
+                    process.chdir(folderPath);
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
@@ -91,6 +113,8 @@ const init: RootPluginCreator = actions => {
                         await executeShellCommand(`npm install ${plugin} --save-dev`);
                         plugins.push(plugin);
                         writeYaml(configFilePath, config);
+                    } else {
+                        console.log('plugin already installed');
                     }
                 } else {
                     throw new Error('not a project folder');
@@ -115,8 +139,11 @@ const init: RootPluginCreator = actions => {
                         }
 
                         writeYaml(globalConfigFilePath, config);
+                    } else {
+                        console.log('plugin not installed');
                     }
                 } else if (isProjectRepo) {
+                    process.chdir(folderPath);
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
@@ -129,6 +156,8 @@ const init: RootPluginCreator = actions => {
                         }
 
                         writeYaml(configFilePath, config);
+                    } else {
+                        console.log('plugin not installed');
                     }
                 } else {
                     throw new Error('not a project folder');

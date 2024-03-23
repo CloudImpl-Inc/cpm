@@ -126,6 +126,15 @@ const commands: Record<string, CommandDef> = {
             }
         },
     },
+    "plugin list": {
+        description: "list plugin versions",
+        options: {
+            "global": {
+                shortName: "g",
+                description: "list global plugin versions"
+            }
+        }
+    },
     "plugin add": {
         description: "install cpm plugin",
         arguments: {

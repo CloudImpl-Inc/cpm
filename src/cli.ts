@@ -32,11 +32,10 @@ const loadDynamicPlugin = async (actions: Record<string, CommandAction>, config:
     const pluginPath = `${pluginRoot}/${pluginName}`;
 
     try {
-        const pluginCreator = ((await import(`${pluginRoot}/${pluginName}`)).default as CPMPluginCreator);
+        const pluginCreator = ((await import(pluginPath)).default as CPMPluginCreator);
         await loadPlugin(actions, config, variables, secrets, pluginName, pluginCreator);
     } catch (err) {
-        console.error(`error loading plugin ${pluginPath}`);
-        console.error(err);
+        console.log(`${pluginPath} not found, please run cpm sync`);
     }
 }
 
