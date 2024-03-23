@@ -52,6 +52,9 @@ const commands: Record<string, CommandDef> = {
             },
             "title": {
                 description: "task title"
+            },
+            "status": {
+                description: "task status"
             }
         }
     },
