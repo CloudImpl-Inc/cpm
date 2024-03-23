@@ -24,7 +24,9 @@ cpm <command> [options] [arguments]
 
 ## Commands
 
-### init
+### Core commands
+
+#### init
 
 Initialize a cpm project.
 
@@ -32,7 +34,7 @@ Initialize a cpm project.
 cpm init
 ```
 
-### list
+#### list
 
 List projects.
 
@@ -40,7 +42,7 @@ List projects.
 cpm list
 ```
 
-### find
+#### find
 
 Find repository cloned path. This will output the first found repository with the search pattern.
 
@@ -56,7 +58,7 @@ cpm find <query>
 - `repo`: Repository name extracted from URL.
 - `path`: Locally cloned directory.
 
-### sync
+#### sync
 
 Sync project (sync plugins).
 
@@ -64,7 +66,9 @@ Sync project (sync plugins).
 cpm sync
 ```
 
-### task list
+### Task related commands
+
+#### task list
 
 List tasks.
 
@@ -75,7 +79,7 @@ cpm task list [options]
 **Options:**
 - `-a, --assigned`: Only get tasks assigned to the current user.
 
-### task select
+#### task select
 
 Select a task from the list.
 
@@ -91,7 +95,7 @@ cpm task select [options]
 - `title`: Task title.
 - `status`: Task status.
 
-### task get
+#### task get
 
 Get a task with ID.
 
@@ -107,7 +111,7 @@ cpm task get <id>
 - `title`: Task title.
 - `status`: Task status.
 
-### task status
+#### task status
 
 Update task status.
 
@@ -119,7 +123,9 @@ cpm task status <id> <status>
 - `id`: ID of the task.
 - `status`: New status of the task.
 
-### repo clone
+### Repo commands
+
+#### repo clone
 
 Clone a git repository to the root directory configured in ctx.config.rootDir.
 
@@ -135,7 +141,7 @@ cpm repo clone <url>
 - `repo`: Repository name extracted from URL.
 - `path`: Locally cloned directory.
 
-### repo checkout
+#### repo checkout
 
 Checkout a branch inside the git repository. If the branch does not exist, create a branch from the default branch and update the default branch from upstream before creating a new branch.
 
@@ -146,7 +152,7 @@ cpm repo checkout [options]
 **Options:**
 - `-b, --branch <branch>`: Branch name to checkout (required).
 
-### repo sync
+#### repo sync
 
 Synchronize the repository's current branch with remote.
 
@@ -154,7 +160,7 @@ Synchronize the repository's current branch with remote.
 cpm repo sync
 ```
 
-### repo info
+#### repo info
 
 Get info of the repository.
 
@@ -166,7 +172,9 @@ cpm repo info
 - `currentBranch`: Current branch name.
 - `changesPending`: Changes pending.
 
-### pr create
+### Pull request commands
+
+#### pr create
 
 Create a pull request / merge request (currently only supports interactive mode).
 
@@ -178,7 +186,9 @@ cpm pr create <head> <base>
 - `head`: Head branch name.
 - `base`: Base branch name.
 
-### plugin list
+### Plugin management commands
+
+#### plugin list
 
 List plugin versions.
 
@@ -189,7 +199,7 @@ cpm plugin list [options]
 **Options:**
 - `-g, --global`: List global plugin versions.
 
-### plugin add
+#### plugin add
 
 Install cpm plugin.
 
@@ -203,7 +213,7 @@ cpm plugin add <plugin> [options]
 **Options:**
 - `-g, --global`: Install plugin globally.
 
-### plugin remove
+#### plugin remove
 
 Uninstall cpm plugin.
 
@@ -217,7 +227,7 @@ cpm plugin remove <plugin> [options]
 **Options:**
 - `-g, --global`: Uninstall plugin globally.
 
-### plugin configure
+#### plugin configure
 
 Configure cpm plugin.
 
@@ -231,7 +241,9 @@ cpm plugin configure <plugin> [options]
 **Options:**
 - `-g, --global`: Configure plugin globally.
 
-### flow enable
+### CPM flow related commands
+
+#### flow enable
 
 Enable cpm flow.
 
@@ -239,7 +251,7 @@ Enable cpm flow.
 cpm flow enable
 ```
 
-### flow configure
+#### flow configure
 
 Configure cpm flow.
 
@@ -247,7 +259,7 @@ Configure cpm flow.
 cpm flow configure
 ```
 
-### flow setup
+#### flow setup
 
 Make repository ready to use cpm flow (every new clone should run this).
 
@@ -255,7 +267,7 @@ Make repository ready to use cpm flow (every new clone should run this).
 cpm flow setup
 ```
 
-### flow checkout
+#### flow checkout
 
 Checkout issue to start development.
 
@@ -266,7 +278,7 @@ cpm flow checkout [options]
 **Options:**
 - `-t, --taskId <taskId>`: Task ID to checkout.
 
-### flow submit
+#### flow submit
 
 Create PR for issue for the current working issue.
 
