@@ -1,7 +1,7 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, ActionOutput, CommandDef, CPMContext, CPMPlugin, Workflow} from "./index";
 import {Command} from "commander";
-import {execSync} from "child_process";
+import {spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 import * as fs from "fs";
@@ -149,8 +149,37 @@ export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): 
 
 export const executeShellCommand = async (command: string) => {
     console.log(command);
-    const output = execSync(command, {env: {...process.env, OUTPUT: stepOutput}});
-    console.log(output.toString());
+
+    await new Promise<void>((resolve, reject) => {
+        const parts = command.split('&&').map(cmd => cmd.trim());
+        const execNextCommand = (index: number) => {
+            if (index >= parts.length) {
+                resolve();
+                return;
+            }
+
+            const command = parts[index];
+            const child = spawn(command, [], {
+                stdio: 'inherit',
+                shell: true,
+                env: {...process.env, OUTPUT: stepOutput}
+            });
+
+            child.on('error', (err) => {
+                reject(err);
+            });
+
+            child.on('close', (code) => {
+                if (code === 0) {
+                    execNextCommand(index + 1);
+                } else {
+                    reject(new Error(`Command '${command}' exited with code ${code}`));
+                }
+            });
+        };
+
+        execNextCommand(0);
+    });
 
     const result: Record<string, string> = {};
     const lines = fs.readFileSync(stepOutput, 'utf-8').split('\n');
@@ -162,8 +191,7 @@ export const executeShellCommand = async (command: string) => {
     }
 
     return {
-        result,
-        output: output.toString()
+        result
     };
 }
 
