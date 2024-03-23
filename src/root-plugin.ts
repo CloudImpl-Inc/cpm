@@ -66,12 +66,13 @@ const init: RootPluginCreator = actions => {
             },
             "sync": async (ctx, input) => {
                 if (isProjectRepo) {
-                    process.chdir(folderPath);
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     for (const plugin of plugins) {
-                        await executeShellCommand(`npm install ${plugin} --save-dev`)
+                        await executeShellCommand(`npm install ${plugin} --save-dev`, {
+                            cwd: folderPath
+                        })
                     }
 
                     if (config.flow?.enabled) {
@@ -85,11 +86,13 @@ const init: RootPluginCreator = actions => {
             },
             "plugin list": async (ctx, input) => {
                 if (input.options.global) {
-                    process.chdir(globalFolderPath);
-                    await executeShellCommand('npm list --depth=0');
+                    await executeShellCommand('npm list --depth=0', {
+                        cwd: globalFolderPath
+                    });
                 } else if (isProjectRepo) {
-                    process.chdir(folderPath);
-                    await executeShellCommand('npm list --depth=0');
+                    await executeShellCommand('npm list --depth=0', {
+                        cwd: folderPath
+                    });
                 } else {
                     throw new Error('not a project folder');
                 }
@@ -100,24 +103,26 @@ const init: RootPluginCreator = actions => {
                 const plugin = input.args.plugin;
 
                 if (input.options.global) {
-                    process.chdir(globalFolderPath);
                     const config = readYaml(globalConfigFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (!plugins.includes(plugin)) {
-                        await executeShellCommand(`npm install ${plugin} --save-dev`);
+                        await executeShellCommand(`npm install ${plugin} --save-dev`, {
+                            cwd: globalFolderPath
+                        });
                         plugins.push(plugin);
                         writeYaml(globalConfigFilePath, config);
                     } else {
                         console.log('plugin already installed');
                     }
                 } else if (isProjectRepo) {
-                    process.chdir(folderPath);
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (!plugins.includes(plugin)) {
-                        await executeShellCommand(`npm install ${plugin} --save-dev`);
+                        await executeShellCommand(`npm install ${plugin} --save-dev`, {
+                            cwd: folderPath
+                        });
                         plugins.push(plugin);
                         writeYaml(configFilePath, config);
                     } else {
@@ -133,12 +138,13 @@ const init: RootPluginCreator = actions => {
                 const plugin = input.args.plugin;
 
                 if (input.options.global) {
-                    process.chdir(globalFolderPath);
                     const config = readYaml(globalConfigFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (plugins.includes(plugin)) {
-                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`);
+                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`, {
+                            cwd: globalFolderPath
+                        });
 
                         const index = plugins.indexOf(plugin);
                         if (index > -1) {
@@ -150,12 +156,13 @@ const init: RootPluginCreator = actions => {
                         console.log('plugin not installed');
                     }
                 } else if (isProjectRepo) {
-                    process.chdir(folderPath);
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
                     if (plugins.includes(plugin)) {
-                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`);
+                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`, {
+                            cwd: folderPath
+                        });
 
                         const index = plugins.indexOf(plugin);
                         if (index > -1) {

@@ -5,8 +5,14 @@ import {spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 import * as fs from "fs";
+import * as path from "path";
 
-export const cwd = process.cwd();
+export const cwd = findCwd(process.cwd()) || process.cwd();
+
+if (cwd !== process.cwd()) {
+    process.chdir(cwd);
+    console.log(`changed cpm working directory to ${cwd}`);
+}
 
 export const folderPath = `${cwd}/.cpm`;
 export const configFilePath = `${cwd}/cpm.yml`;
@@ -27,6 +33,34 @@ export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
 export const stepOutput = isProjectRepo
     ? `${cwd}/.cpm/output.txt`
     : `${globalFolderPath}/output.txt`
+
+function findCwd(startDir: string): string | null {
+    let currentDir = startDir;
+
+    // Traverse upwards until reaching the root directory
+    while (true) {
+        const cpmYmlPath = path.join(currentDir, 'cpm.yml');
+
+        // Check if cpm.yml file exists in the current directory
+        if (fs.existsSync(cpmYmlPath) && fs.statSync(cpmYmlPath).isFile()) {
+            // Found cpm.yml file, return the directory containing it
+            return currentDir;
+        }
+
+        // Move up one directory
+        const parentDir = path.dirname(currentDir);
+
+        // If current directory is the same as the parent directory, we've reached the root
+        if (currentDir === parentDir) {
+            break;
+        }
+
+        currentDir = parentDir;
+    }
+
+    // cpm.yml not found in any parent directory
+    return null;
+}
 
 export const createFolder = (path: string): void => {
     if (!existsSync(path)){
@@ -147,38 +181,29 @@ export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): 
     return cmd.replace(placeHolder, param);
 }
 
-export const executeShellCommand = async (command: string) => {
+export const executeShellCommand = async (command: string, options?: { cwd?: string }) => {
     console.log(command);
+    const newCwd = options?.cwd || process.cwd();
 
     await new Promise<void>((resolve, reject) => {
-        const parts = command.split('&&').map(cmd => cmd.trim());
-        const execNextCommand = (index: number) => {
-            if (index >= parts.length) {
+        const child = spawn(command, [], {
+            stdio: 'inherit',
+            shell: true,
+            cwd: newCwd,
+            env: {...process.env, OUTPUT: stepOutput}
+        });
+
+        child.on('error', (err) => {
+            reject(err);
+        });
+
+        child.on('close', (code) => {
+            if (code === 0) {
                 resolve();
-                return;
+            } else {
+                reject(new Error(`Command '${command}' exited with code ${code}`));
             }
-
-            const command = parts[index];
-            const child = spawn(command, [], {
-                stdio: 'inherit',
-                shell: true,
-                env: {...process.env, OUTPUT: stepOutput}
-            });
-
-            child.on('error', (err) => {
-                reject(err);
-            });
-
-            child.on('close', (code) => {
-                if (code === 0) {
-                    execNextCommand(index + 1);
-                } else {
-                    reject(new Error(`Command '${command}' exited with code ${code}`));
-                }
-            });
-        };
-
-        execNextCommand(0);
+        });
     });
 
     const result: Record<string, string> = {};
