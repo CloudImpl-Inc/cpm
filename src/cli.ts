@@ -18,10 +18,10 @@ import {
     writeJson,
     writeYaml
 } from "./util";
+import FlowPlugin from './flow-plugin';
 import RootPlugin from './root-plugin';
 import cpmCommands from './commands';
 import {existsSync} from "fs";
-import path from "path";
 
 const getNamespace = (data: any, namespace: string) => {
     return computeIfNotExist(data, namespace, {});
@@ -159,6 +159,9 @@ const run = async () => {
 
     const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
+
+    // Register default plugins
+    await loadPlugin(actions, config, variables, secrets, 'flow', FlowPlugin);
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {

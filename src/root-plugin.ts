@@ -9,6 +9,7 @@ import {
     isProjectRepo,
     readYaml, writeJson, writeYaml
 } from "./util";
+import chalk from 'chalk';
 
 type RootPluginCreator = (actions: Record<string, CommandAction>) => CPMPlugin | Promise<CPMPlugin>;
 
@@ -18,7 +19,7 @@ const init: RootPluginCreator = actions => {
         actions: {
             "init": async (ctx, input) => {
                 if (isProjectRepo) {
-                    console.log('already initialized');
+                    console.log(chalk.yellow('already initialized'));
                 } else {
                     const config: CPMConfig = {
                         plugins: []
@@ -26,7 +27,7 @@ const init: RootPluginCreator = actions => {
                     writeYaml(configFilePath, config);
                     createFolder(folderPath);
                     writeJson(`${folderPath}/package.json`, {});
-                    console.log('cpm project initialized');
+                    console.log(chalk.green('cpm project initialized'));
                 }
                 return {};
             },
@@ -174,23 +175,6 @@ const init: RootPluginCreator = actions => {
             "plugin configure": async (ctx, input) => {
                 const plugin = input.args.plugin;
                 return actions[`${plugin} configure`]({args: {}, options: {}});
-            },
-            "flow enable": async (ctx, input) => {
-                if (isProjectRepo) {
-                    const config = readYaml(configFilePath, {});
-
-                    if (config.cpmFlowEnabled) {
-                        console.log('cpm flow already enabled');
-                    } else {
-                        config['cpmFlowEnabled'] = true;
-                        writeYaml(configFilePath, config);
-                        await executeShellCommand('cpm flow configure');
-                    }
-                } else {
-                    throw new Error('not a project folder');
-                }
-
-                return {};
             }
         }
     }

@@ -118,6 +118,20 @@ const commands: Record<string, CommandDef> = {
             }
         }
     },
+    "repo sync": {
+        description: "synchronize repository current branch with remote"
+    },
+    "repo info": {
+        description: "get info of repository",
+        outputs: {
+            currentBranch: {
+                description: "current branch name"
+            },
+            changesPending: {
+                description: "changes pending"
+            }
+        }
+    },
     "pr create": {
         description: "create pull request / merge request (currently only support interactive mode)",
         arguments: {
@@ -199,13 +213,7 @@ const commands: Record<string, CommandDef> = {
         }
     },
     "flow submit": {
-        description: "create pr for issue for current working issue",
-        options: {
-            "taskId": {
-                shortName: "t",
-                description: "task id to checkout"
-            }
-        }
+        description: "create pr for issue for current working issue"
     }
 };
 
