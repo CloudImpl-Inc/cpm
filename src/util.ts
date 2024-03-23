@@ -16,6 +16,7 @@ if (cwd !== process.cwd()) {
 
 export const folderPath = `${cwd}/.cpm`;
 export const configFilePath = `${cwd}/cpm.yml`;
+export const packageJsonFile = `${folderPath}/package.json`;
 export const variablesFilePath = `${folderPath}/variables.json`;
 export const secretsFilePath = `${folderPath}/secrets.json`;
 export const pluginRoot = `${folderPath}/node_modules`;
@@ -24,6 +25,7 @@ export const isProjectRepo = existsSync(configFilePath);
 
 export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
+export const globalPackageJsonFile = `${globalFolderPath}/package.json`;
 export const globalVariablesFilePath = `${globalFolderPath}/variables.json`;
 export const globalSecretsFilePath = `${globalFolderPath}/secrets.json`;
 export const globalPluginRoot = `${globalFolderPath}/node_modules`;
@@ -63,8 +65,15 @@ function findCwd(startDir: string): string | null {
 }
 
 export const createFolder = (path: string): void => {
-    if (!existsSync(path)){
+    if (!existsSync(path)) {
         mkdirSync(path);
+    }
+}
+
+export const createFile = (path: string, def: string | (() => string)) => {
+    if (!existsSync(path)) {
+        const data = (typeof def === 'function') ? def() : def;
+        writeFileSync(path, Buffer.from(data))
     }
 }
 

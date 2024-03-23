@@ -3,14 +3,14 @@ import {Action, CommandDef, CPMContext, CPMPluginCreator, Workflow} from ".";
 import {
     CommandAction,
     computeIfNotExist,
-    configFilePath, convertFlatToTree,
+    configFilePath, convertFlatToTree, createFile,
     createFolder, createWorkflowCommand,
     defaultProjectsRootPath, folderPath,
     globalConfigFilePath,
-    globalFolderPath,
+    globalFolderPath, globalPackageJsonFile,
     globalPluginRoot,
     globalSecretsFilePath, globalVariablesFilePath,
-    isProjectRepo, parseCommand,
+    isProjectRepo, packageJsonFile, parseCommand,
     pluginRoot,
     readJson,
     readYaml, runWorkflow,
@@ -116,6 +116,7 @@ const run = async () => {
         .description("CloudImpl project manager | Your partner in project managing");
 
     createFolder(globalFolderPath);
+    createFile(globalPackageJsonFile, '{}');
 
     // Add initial cpm.yml
     if (!existsSync(globalConfigFilePath)) {
@@ -146,6 +147,8 @@ const run = async () => {
 
     if (isProjectRepo) {
         createFolder(folderPath);
+        createFile(packageJsonFile, '{}');
+
         localConfig = readYaml(configFilePath, {});
         localVariables = readJson(variablesFilePath, {});
         localSecrets = readJson(secretsFilePath, {});
