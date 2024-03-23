@@ -25,7 +25,7 @@ const flowEnable: Action = async (ctx, input) => {
         return {};
     }
 
-    if (ctx.config.flow.enabled) {
+    if (ctx.config.flow?.enabled) {
         console.log(chalk.yellow('cpm flow already enabled'));
         return {};
     }
@@ -36,11 +36,14 @@ const flowEnable: Action = async (ctx, input) => {
     writeYaml(configFilePath, config);
     console.log(chalk.green('cpm flow enabled'));
 
+    await executeShellCommand('cpm flow setup');
+    await executeShellCommand('cpm flow configure');
+
     return {};
 };
 
 const flowConfigure: Action = async (ctx, input) => {
-    if (ctx.config.flow?.enabled) {
+    if (!ctx.config.flow?.enabled) {
         console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
         return {};
     }
@@ -65,11 +68,17 @@ const flowConfigure: Action = async (ctx, input) => {
     config.flow.defaultBranch = answers.defaultBranch;
     config.flow.productionBranch = answers.productionBranch;
     writeYaml(configFilePath, config);
+    console.log(chalk.green('cpm flow configured'));
 
     return {};
 }
 
 const flowSetup: Action = async (ctx, input) => {
+    if (!ctx.config.flow?.enabled) {
+        console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
+        return {};
+    }
+
     if (existsSync(path.join(cwd, '.git', 'hooks'))) {
         fs.writeFileSync(path.join(cwd, '.git', 'hooks', 'prepare-commit-msg'), prepareCommitMsg)
         await executeShellCommand(`chmod +x ${cwd}/.git/hooks/*`)
@@ -79,7 +88,7 @@ const flowSetup: Action = async (ctx, input) => {
 }
 
 const flowCheckout: Action = async (ctx, input) => {
-    if (ctx.config.flow?.enabled) {
+    if (!ctx.config.flow?.enabled) {
         console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
         return {};
     }
@@ -140,7 +149,7 @@ const flowCheckout: Action = async (ctx, input) => {
 }
 
 const flowSubmit: Action = async (ctx, input) => {
-    if (ctx.config.flow?.enabled) {
+    if (!ctx.config.flow?.enabled) {
         console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
         return {};
     }
