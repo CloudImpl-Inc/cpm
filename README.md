@@ -1,5 +1,5 @@
 <p align="center">
-<img width="775" alt="Screenshot 2024-03-24 at 10 05 22" src="https://github.com/CloudImpl-Inc/cpm/assets/17607423/6ec299d0-29b5-4420-be5b-438764c412ea">
+<img width="300" alt="Screenshot 2024-03-24 at 10 05 22" src="https://github.com/CloudImpl-Inc/cpm/assets/17607423/6ec299d0-29b5-4420-be5b-438764c412ea">
 </p>
 
 **cpm** is a powerful command-line tool designed to streamline project management tasks. With **cpm**, you can easily initialize projects, clone repositories, manage tasks, synchronize projects, and much more—all from the comfort of your terminal.
