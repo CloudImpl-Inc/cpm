@@ -23,7 +23,8 @@ cpm <command> [options] [arguments]
 ```
 
 ## Available plugins
-You can view available plugins [here](https://github.com/topics/cpm-plugin)
+- [Official plugins](https://cloudimpl-inc.github.io/cpm-plugin-pack/)
+- [Community plugins](https://github.com/topics/cpm-plugin-community)
 
 ## Getting Started
 
