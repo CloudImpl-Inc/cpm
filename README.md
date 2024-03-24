@@ -22,6 +22,9 @@ cpm plugin add @cloudimpl-inc/cpm-git -g
 cpm <command> [options] [arguments]
 ```
 
+## Available plugins
+You can view available plugins [here](https://github.com/topics/cpm-plugin)
+
 ## Getting Started
 
 ### Clone existing repository
