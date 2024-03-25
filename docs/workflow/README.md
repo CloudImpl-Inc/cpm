@@ -9,11 +9,11 @@ workflows:
       - taskId
     steps:
       - id: get_task
-        run: cpm task get {{inputs.taskId}}
+        run: cpm task get ${{ inputs.taskId }}
       - id: repo_checkout
-        run: cpm repo checkout --branch {{get_task.outputs.id}}
+        run: cpm repo checkout --branch ${{ steps.get_task.outputs.id }}
     outputs:
-      branchName: {{steps.get_task.outputs.id}}
+      branchName: ${{ steps.get_task.outputs.id }}
 ```
 
 In this example:

@@ -166,28 +166,35 @@ export const executeCommand = async (action: CommandAction, input: ActionInput, 
     }
 }
 
-export const parseString = (str: string, params: any): string => {
+type WorkflowContext = {
+    inputs: Record<string, any>,
+    steps: Record<string, Record<string, any>>,
+}
+
+export const parseString = (str: string, context: WorkflowContext): string => {
     let updatedStr = str;
-    let start = updatedStr.indexOf('{{', 0);
+    let start = updatedStr.indexOf('${{', 0);
 
     while (start !== -1) {
         const end = updatedStr.indexOf('}}', start);
+
         const placeHolder = updatedStr.substring(start, end + 2);
-        updatedStr = fillPlaceHolder(updatedStr, placeHolder, params);
-        start = updatedStr.indexOf('{{', 0);
+        const expression = placeHolder
+            .replace('${{', '')
+            .replace('}}', '')
+        const value = evaluateExpression(expression, context);
+        updatedStr = updatedStr.replace(placeHolder, value);
+
+        start = updatedStr.indexOf('${{', 0);
     }
 
     return updatedStr;
 }
 
-export const fillPlaceHolder = (cmd: string, placeHolder: string, params: any): string => {
-    const key = placeHolder
-        .replace('{{', '')
-        .replace('}}', '')
-        .split('.');
-
-    const param = getMapKey(params, key);
-    return cmd.replace(placeHolder, param);
+export const evaluateExpression = (expression: string, context: WorkflowContext): string => {
+    const expressionTrimmed = expression.trim();
+    const {inputs, steps} = context;
+    return eval(expressionTrimmed);
 }
 
 export const executeShellCommand = async (command: string, options?: { cwd?: string }) => {
@@ -309,27 +316,30 @@ export const createWorkflowCommand = (workflow: Workflow) => {
 
     workflow.inputs?.forEach(arg => {
         // @ts-ignore
-        def.options[arg] = {}
+        def.options[arg] = {
+            valueRequired: true
+        }
     });
 
     return def;
 }
 
 export const runWorkflow = async (workflow: Workflow, input: ActionInput) => {
-    const params: any = {
-        inputs: input.options
+    const context: WorkflowContext = {
+        inputs: input.options,
+        steps: {}
     }
 
     for (const s of workflow.steps) {
-        const shellCmd = parseString(s.run, params);
+        const shellCmd = parseString(s.run, context);
         const {result} = await executeShellCommand(shellCmd);
-        addMapKey(params, [s.id, 'outputs'], result);
+        addMapKey(context.steps, [s.id, 'outputs'], result);
     }
 
     // Enable nested workflow
     const result: Record<string, string> = {};
     Object.entries(workflow.outputs || []).forEach(([key, value]) => {
-        result[key] = parseString(value, params);
+        result[key] = parseString(value, context);
     })
 
     return result;
