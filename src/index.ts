@@ -26,6 +26,7 @@ export type Action = (ctx: CPMContext, input: ActionInput) => ActionOutput | Pro
 export type CPMPlugin = {
     name: string,
     configure?: Action,
+    commands?: Record<string, CommandDef>,
     actions: Record<string, Action>,
 }
 

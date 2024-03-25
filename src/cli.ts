@@ -22,6 +22,7 @@ import FlowPlugin from './flow-plugin';
 import RootPlugin from './root-plugin';
 import cpmCommands from './commands';
 import {existsSync} from "fs";
+import commands from "./commands";
 
 const getNamespace = (data: any, namespace: string) => {
     return computeIfNotExist(data, namespace, {});
@@ -58,10 +59,13 @@ const loadPlugin = async (actions: Record<string, CommandAction>, config: Record
 
     actions[`${pluginName} configure`] = async (input) => await configure(ctx, input);
 
-    Object.keys(plugin.actions).forEach(command => {
-        const action = plugin.actions[command];
-        actions[command] = async (input) => await action(ctx, input);
-    })
+    Object.entries(plugin.commands || {}).forEach(([name, command]) => {
+        commands[name] = command;
+    });
+
+    Object.entries(plugin.actions).forEach(([name, action]) => {
+        actions[name] = async (input) => await action(ctx, input);
+    });
 }
 
 const loadRootPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
@@ -76,10 +80,13 @@ const loadRootPlugin = async (actions: Record<string, CommandAction>, config: Re
 
     const plugin = await RootPlugin(actions);
 
-    Object.keys(plugin.actions).forEach(command => {
-        const action = plugin.actions[command];
-        actions[command] = async (input) => await action(ctx, input);
-    })
+    Object.entries(plugin.commands || {}).forEach(([name, command]) => {
+        commands[name] = command;
+    });
+
+    Object.entries(plugin.actions).forEach(([name, action]) => {
+        actions[name] = async (input) => await action(ctx, input);
+    });
 }
 
 const loadCommand = async (actions: Record<string, any>, name: string, targetAction: string,
