@@ -25,6 +25,7 @@
 
 ## Commands
 - [cpm](docs/core)
+- [cpm template](docs/template)
 - [cpm repo](docs/repo)
 - [cpm task](docs/task)
 - [cpm pr](docs/pr)

@@ -29,6 +29,16 @@ const commands: Record<string, CommandDef> = {
     "sync": {
         description: "sync project (sync plugins)"
     },
+    "template fill": {
+        description: "read files and prompt user to enter value for placeholder and fill",
+        options: {
+            file: {
+                description: "file name to fill",
+                shortName: "f",
+                valueRequired: true
+            }
+        }
+    },
     "task list": {
         description: "list tasks",
         options: {

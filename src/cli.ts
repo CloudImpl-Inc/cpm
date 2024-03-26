@@ -19,6 +19,7 @@ import {
     writeYaml
 } from "./util";
 import FlowPlugin from './flow-plugin';
+import TemplatePlugin from './template-plugin';
 import RootPlugin from './root-plugin';
 import cpmCommands from './commands';
 import {existsSync} from "fs";
@@ -168,6 +169,7 @@ const run = async () => {
     const actions: Record<string, CommandAction> = {};
 
     // Register default plugins
+    await loadPlugin(actions, config, variables, secrets, 'template', TemplatePlugin);
     await loadPlugin(actions, config, variables, secrets, 'flow', FlowPlugin);
 
     // Register global plugins
