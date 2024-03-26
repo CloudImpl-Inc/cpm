@@ -6,7 +6,7 @@ import {
     executeShellCommand, folderPath,
     globalConfigFilePath,
     globalFolderPath,
-    isProjectRepo, readYaml, writeJson, writeYaml
+    isProjectRepo, readJson, readYaml, secretsFilePath, variablesFilePath, writeJson, writeYaml
 } from "./util";
 import chalk from 'chalk';
 
@@ -163,6 +163,14 @@ const init: RootPluginCreator = actions => {
                         }
                         writeYaml(configFilePath, config);
                     }
+
+                    const variables = readJson(variablesFilePath, {});
+                    delete variables[plugin];
+                    writeJson(variablesFilePath, variables);
+
+                    const secrets = readJson(secretsFilePath, {});
+                    delete secrets[plugin];
+                    writeJson(secretsFilePath, secrets);
 
                     console.log(chalk.green('plugin removed'));
                 } else {
