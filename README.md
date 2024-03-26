@@ -35,6 +35,9 @@
 ## Workflow management
 To start using workflows, follow the [workflow](docs/workflow) guide. Streamline your processes effortlessly with automation—unlocking more time for what truly matters.
 
+## Developing Plugins
+Want to extend the functionality of cpm? Dive into our comprehensive guide on [developing plugins](docs/plugin-development)! Whether you're looking to integrate new services, automate custom workflows, or enhance existing features, this guide will walk you through the process step-by-step.
+
 ## Contributing
 For contributions, please refer to the [Contribution Guidelines](CONTRIBUTING.md).
 
