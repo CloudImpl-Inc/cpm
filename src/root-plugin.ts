@@ -105,9 +105,8 @@ const init: RootPluginCreator = actions => {
                     if (!plugins.includes(plugin)) {
                         plugins.push(plugin);
                         writeYaml(globalConfigFilePath, config);
+                        console.log(chalk.green('plugin added'));
                     }
-
-                    console.log(chalk.green('plugin added'));
                 } else if (isProjectRepo) {
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
@@ -119,9 +118,10 @@ const init: RootPluginCreator = actions => {
                     if (!plugins.includes(plugin)) {
                         plugins.push(plugin);
                         writeYaml(configFilePath, config);
-                    }
+                        console.log(chalk.green('plugin added'));
 
-                    console.log(chalk.green('plugin added'));
+                        await executeShellCommand(`cpm plugin configure ${plugin}`)
+                    }
                 } else {
                     console.log(chalk.red('please run this command inside a cpm project'));
                 }
