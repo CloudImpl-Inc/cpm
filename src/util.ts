@@ -1,11 +1,13 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, ActionOutput, CommandDef, CPMContext, CPMPlugin, Workflow} from "./index";
+import {ActionInput, ActionOutput, CommandDef, CPMConfig, Workflow} from "./index";
 import {Command} from "commander";
 import {spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
+import * as crypto from 'crypto';
+import chalk from "chalk";
 
 export const cwd = findCwd(process.cwd()) || process.cwd();
 
@@ -20,6 +22,8 @@ export const packageJsonFile = `${folderPath}/package.json`;
 export const variablesFilePath = `${folderPath}/variables.json`;
 export const secretsFilePath = `${folderPath}/secrets.json`;
 export const pluginRoot = `${folderPath}/node_modules`;
+export const gitIgnoreFilePath = `${cwd}/.gitignore`;
+export const hashFilePath = `${folderPath}/state.hash`;
 
 export const isProjectRepo = existsSync(configFilePath);
 
@@ -201,6 +205,8 @@ export const executeShellCommand = async (command: string, options?: { cwd?: str
     console.log(command);
     const newCwd = options?.cwd || process.cwd();
 
+    writeFileSync(stepOutput, Buffer.from(''));
+
     await new Promise<void>((resolve, reject) => {
         const child = spawn(command, [], {
             stdio: 'inherit',
@@ -223,7 +229,7 @@ export const executeShellCommand = async (command: string, options?: { cwd?: str
     });
 
     const result: Record<string, string> = {};
-    const lines = fs.readFileSync(stepOutput, 'utf-8').split('\n');
+    const lines = readFileSync(stepOutput, 'utf-8').split('\n');
     for (const line of lines) {
         const [key, value] = line.split('=');
         if (key && value) {
@@ -343,6 +349,43 @@ export const runWorkflow = async (workflow: Workflow, input: ActionInput) => {
     })
 
     return result;
+}
+
+export const syncProject = async (config: CPMConfig) => {
+    if (isProjectRepo) {
+        await executeShellCommand('npm install', {cwd: folderPath});
+
+        if (config.flow?.enabled) {
+            await executeShellCommand('cpm flow setup');
+        }
+    } else {
+        console.log(chalk.red('please run this command inside a cpm project'));
+    }
+}
+
+export const calculateFileMD5Sync = (filePath: string): string => {
+    try {
+        const fileData = fs.readFileSync(filePath);
+        const hash = crypto.createHash('md5').update(fileData);
+        return hash.digest('hex');
+    } catch (error) {
+        throw new Error(`Error calculating MD5 hash: ${error}`);
+    }
+};
+
+export const autoSync = async (config: CPMConfig) => {
+    if (isProjectRepo) {
+        const fileHash = calculateFileMD5Sync(configFilePath).trim();
+        const savedHash = (existsSync(hashFilePath))
+            ? readFileSync(hashFilePath).toString().trim()
+            : '';
+
+        if (fileHash !== savedHash) {
+            await syncProject(config);
+            writeFileSync(hashFilePath, Buffer.from(fileHash));
+            console.log(chalk.green('cpm project synced automatically'))
+        }
+    }
 }
 
 export type CommandAction = (input: ActionInput) => ActionOutput | Promise<ActionOutput>;

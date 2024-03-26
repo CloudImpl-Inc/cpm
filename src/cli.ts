@@ -1,6 +1,7 @@
 import {Command} from "commander";
 import {Action, CommandDef, CPMContext, CPMPluginCreator, Workflow} from ".";
 import {
+    autoSync,
     CommandAction,
     computeIfNotExist,
     configFilePath, convertFlatToTree, createFile,
@@ -161,6 +162,9 @@ const run = async () => {
     const config: Record<string, any> = {};
     Object.assign(config, globalConfig);
     Object.assign(config, localConfig);
+
+    // Try to auto sync project
+    await autoSync(config);
 
     const variables = isProjectRepo ? localVariables : globalVariables;
     const secrets = isProjectRepo ? localSecrets : globalSecrets;
