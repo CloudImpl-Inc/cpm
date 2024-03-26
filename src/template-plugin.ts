@@ -35,7 +35,9 @@ const replaceValuesInFiles = async (directoryPath: string, inputValues: Record<s
         if (fileStats.isFile()) {
             await replaceValueInFile(filePath, inputValues); // Call for file
         } else if (fileStats.isDirectory()) {
-            await replaceValuesInFiles(filePath, inputValues); // Recursive call for directories
+            if (file !== '.git') {
+                await replaceValuesInFiles(filePath, inputValues); // Recursive call for directories
+            }
         }
     }
 };

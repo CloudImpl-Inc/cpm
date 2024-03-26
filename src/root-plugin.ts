@@ -6,8 +6,7 @@ import {
     executeShellCommand, folderPath,
     globalConfigFilePath,
     globalFolderPath,
-    isProjectRepo,
-    readYaml, writeJson, writeYaml
+    isProjectRepo, readYaml, writeJson, writeYaml
 } from "./util";
 import chalk from 'chalk';
 
@@ -66,16 +65,9 @@ const init: RootPluginCreator = actions => {
             },
             "sync": async (ctx, input) => {
                 if (isProjectRepo) {
-                    const config = readYaml(configFilePath, {})
-                    const plugins = computeIfNotExist(config, 'plugins', []);
+                    await executeShellCommand('npm install', {cwd: folderPath});
 
-                    for (const plugin of plugins) {
-                        await executeShellCommand(`npm install ${plugin} --save-dev`, {
-                            cwd: folderPath
-                        })
-                    }
-
-                    if (config.flow?.enabled) {
+                    if (ctx.config.flow?.enabled) {
                         await executeShellCommand('cpm flow setup');
                     }
                 } else {
