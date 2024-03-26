@@ -174,7 +174,7 @@ const init: RootPluginCreator = actions => {
             "plugin configure": async (ctx, input) => {
                 if (isProjectRepo) {
                     const plugin = input.args.plugin;
-                    const result = actions[`${plugin} configure`]({args: {}, options: {}});
+                    const result = await actions[`${plugin} configure`]({args: {}, options: {}});
                     console.log('plugin configured');
                     return result;
                 } else {
