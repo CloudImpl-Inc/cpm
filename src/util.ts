@@ -212,7 +212,11 @@ export const executeShellCommand = async (command: string, options?: { cwd?: str
             stdio: 'inherit',
             shell: true,
             cwd: newCwd,
-            env: {...process.env, OUTPUT: stepOutput}
+            env: {
+                ...process.env,
+                OUTPUT: stepOutput,
+                PARENT_PROCESS: process.pid.toString()
+            }
         });
 
         child.on('error', (err) => {
@@ -374,6 +378,14 @@ export const calculateFileMD5Sync = (filePath: string): string => {
 };
 
 export const autoSync = async (config: CPMConfig) => {
+    // If cpm command executed inside auto sync then it will trigger infinite loop
+    // Run auto sync only for parent cpm process
+
+    const parentProcess = process.env.PARENT_PROCESS;
+    if (parentProcess) {
+        return;
+    }
+
     if (isProjectRepo) {
         const fileHash = calculateFileMD5Sync(configFilePath).trim();
         const savedHash = (existsSync(hashFilePath))
