@@ -71,7 +71,7 @@ const init: RootPluginCreator = actions => {
                         await executeShellCommand('cpm flow setup');
                     }
                 } else {
-                    throw new Error('not a project folder');
+                    console.log(chalk.red('please run this command inside a cpm project'));
                 }
 
                 return {};
@@ -86,7 +86,7 @@ const init: RootPluginCreator = actions => {
                         cwd: folderPath
                     });
                 } else {
-                    throw new Error('not a project folder');
+                    console.log(chalk.red('please run this command inside a cpm project'));
                 }
 
                 return {};
@@ -98,30 +98,32 @@ const init: RootPluginCreator = actions => {
                     const config = readYaml(globalConfigFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
+                    await executeShellCommand(`npm install ${plugin} --save-dev`, {
+                        cwd: globalFolderPath
+                    });
+
                     if (!plugins.includes(plugin)) {
-                        await executeShellCommand(`npm install ${plugin} --save-dev`, {
-                            cwd: globalFolderPath
-                        });
                         plugins.push(plugin);
                         writeYaml(globalConfigFilePath, config);
-                    } else {
-                        console.log('plugin already installed');
                     }
+
+                    console.log(chalk.green('plugin added'));
                 } else if (isProjectRepo) {
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
+                    await executeShellCommand(`npm install ${plugin} --save-dev`, {
+                        cwd: folderPath
+                    });
+
                     if (!plugins.includes(plugin)) {
-                        await executeShellCommand(`npm install ${plugin} --save-dev`, {
-                            cwd: folderPath
-                        });
                         plugins.push(plugin);
                         writeYaml(configFilePath, config);
-                    } else {
-                        console.log('plugin already installed');
                     }
+
+                    console.log(chalk.green('plugin added'));
                 } else {
-                    throw new Error('not a project folder');
+                    console.log(chalk.red('please run this command inside a cpm project'));
                 }
 
                 return {};
@@ -133,47 +135,52 @@ const init: RootPluginCreator = actions => {
                     const config = readYaml(globalConfigFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
-                    if (plugins.includes(plugin)) {
-                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`, {
-                            cwd: globalFolderPath
-                        });
+                    await executeShellCommand(`npm uninstall ${plugin} --save-dev`, {
+                        cwd: globalFolderPath
+                    });
 
+                    if (plugins.includes(plugin)) {
                         const index = plugins.indexOf(plugin);
                         if (index > -1) {
                             plugins.splice(index, 1);
                         }
-
                         writeYaml(globalConfigFilePath, config);
-                    } else {
-                        console.log('plugin not installed');
                     }
+
+                    console.log(chalk.green('plugin removed'));
                 } else if (isProjectRepo) {
                     const config = readYaml(configFilePath, {})
                     const plugins = computeIfNotExist(config, 'plugins', []);
 
-                    if (plugins.includes(plugin)) {
-                        await executeShellCommand(`npm uninstall ${plugin} --save-dev`, {
-                            cwd: folderPath
-                        });
+                    await executeShellCommand(`npm uninstall ${plugin} --save-dev`, {
+                        cwd: folderPath
+                    });
 
+                    if (plugins.includes(plugin)) {
                         const index = plugins.indexOf(plugin);
                         if (index > -1) {
                             plugins.splice(index, 1);
                         }
-
                         writeYaml(configFilePath, config);
-                    } else {
-                        console.log('plugin not installed');
                     }
+
+                    console.log(chalk.green('plugin removed'));
                 } else {
-                    throw new Error('not a project folder');
+                    console.log(chalk.red('please run this command inside a cpm project'));
                 }
 
                 return {};
             },
             "plugin configure": async (ctx, input) => {
-                const plugin = input.args.plugin;
-                return actions[`${plugin} configure`]({args: {}, options: {}});
+                if (isProjectRepo) {
+                    const plugin = input.args.plugin;
+                    const result = actions[`${plugin} configure`]({args: {}, options: {}});
+                    console.log('plugin configured');
+                    return result;
+                } else {
+                    console.log(chalk.red('please run this command inside a cpm project'));
+                    return {};
+                }
             }
         }
     }
