@@ -60,7 +60,7 @@ const loadPlugin = async (actions: Record<string, CommandAction>, config: Record
     actions[`${pluginName} configure`] = async (input) => await configure(ctx, input);
 
     Object.entries(plugin.commands || {}).forEach(([name, command]) => {
-        commands[name] = command;
+        commands[`${plugin.name} ${name}`] = command;
     });
 
     Object.entries(plugin.actions).forEach(([name, action]) => {
@@ -79,10 +79,6 @@ const loadRootPlugin = async (actions: Record<string, CommandAction>, config: Re
     }
 
     const plugin = await RootPlugin(actions);
-
-    Object.entries(plugin.commands || {}).forEach(([name, command]) => {
-        commands[name] = command;
-    });
 
     Object.entries(plugin.actions).forEach(([name, action]) => {
         actions[name] = async (input) => await action(ctx, input);

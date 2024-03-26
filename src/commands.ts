@@ -88,6 +88,23 @@ const commands: Record<string, CommandDef> = {
             }
         }
     },
+    "repo create": {
+        description: "create git repository in root directory configured in ctx.config.rootDir",
+        arguments: {
+            "org": {
+                description: "organization name"
+            },
+            "repo": {
+                description: "repository name"
+            }
+        },
+        options: {
+            template: {
+                description: "template repository path",
+                valueRequired: true
+            }
+        }
+    },
     "repo clone": {
         description: "clone git repository to root directory configured in ctx.config.rootDir",
         arguments: {
