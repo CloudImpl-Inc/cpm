@@ -1,8 +1,8 @@
-import {Action, CPMPluginCreator} from "./index";
+import {Action, CPMPluginCreator} from "../index";
 import fs from 'fs';
 import readline from 'readline';
 import path from 'path';
-import {cwd} from "./util";
+import {cwd} from "../util";
 import chalk from "chalk";
 
 const replaceValueInFile = async (filePath: string, inputValues: Record<string, string>) => {

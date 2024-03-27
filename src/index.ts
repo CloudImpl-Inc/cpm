@@ -8,6 +8,7 @@ export type CPMContext = {
     config: CPMConfig,
     variables: CPMVariables,
     secrets: CPMSecrets,
+    execute: (action: string, input: ActionInput) => ActionOutput | Promise<ActionOutput>
 }
 
 export type ActionArgs = Record<string, string>;

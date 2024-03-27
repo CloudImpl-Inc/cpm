@@ -1,8 +1,8 @@
 import fs, {existsSync} from "fs";
 import path from "path";
-import {Action, CPMContext, CPMPlugin} from "./index";
-import {computeIfNotExist, configFilePath, cwd, executeShellCommand, isProjectRepo, readYaml, writeYaml} from "./util";
-import prepareCommitMsg from "./git-hooks/prepare-commit-msg";
+import {Action, CPMContext, CPMPlugin} from "../index";
+import {computeIfNotExist, configFilePath, cwd, executeShellCommand, isProjectRepo, readYaml, writeYaml} from "../util";
+import prepareCommitMsg from "../git-hooks/prepare-commit-msg";
 import chalk from 'chalk';
 import inquirer from "inquirer";
 import prompt = inquirer.prompt;

@@ -1,7 +1,6 @@
-import {Action, ActionOutput, CPMConfig, CPMPlugin} from "./index";
+import {Action, ActionOutput, CPMConfig, CPMPluginCreator} from "../index";
 import {appendFileSync, readdirSync} from "fs";
 import {
-    CommandAction,
     computeIfNotExist,
     configFilePath,
     createFile,
@@ -19,10 +18,8 @@ import {
     variablesFilePath,
     writeJson,
     writeYaml
-} from "./util";
+} from "../util";
 import chalk from 'chalk';
-
-type RootPluginCreator = (actions: Record<string, CommandAction>) => CPMPlugin | Promise<CPMPlugin>;
 
 const init: Action = async (ctx, input) => {
     if (isProjectRepo) {
@@ -196,7 +193,19 @@ const pluginRemove: Action = async (ctx, input) => {
     return {};
 }
 
-const pluginInit: RootPluginCreator = actions => {
+const pluginConfigure: Action = async (ctx, input) => {
+    if (isProjectRepo) {
+        const plugin = input.args.plugin;
+        const result = await ctx.execute(`${plugin} configure`, {args: {}, options: {}});
+        console.log('plugin configured');
+        return result;
+    } else {
+        console.log(chalk.red('please run this command inside a cpm project'));
+        return {};
+    }
+};
+
+const pluginInit: CPMPluginCreator = ctx => {
     return {
         name: "root",
         actions: {
@@ -207,17 +216,7 @@ const pluginInit: RootPluginCreator = actions => {
             "plugin list": pluginList,
             "plugin add": pluginAdd,
             "plugin remove": pluginRemove,
-            "plugin configure": async (ctx, input) => {
-                if (isProjectRepo) {
-                    const plugin = input.args.plugin;
-                    const result = await actions[`${plugin} configure`]({args: {}, options: {}});
-                    console.log('plugin configured');
-                    return result;
-                } else {
-                    console.log(chalk.red('please run this command inside a cpm project'));
-                    return {};
-                }
-            }
+            "plugin configure": pluginConfigure
         }
     }
 }

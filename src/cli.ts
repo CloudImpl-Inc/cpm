@@ -19,38 +19,40 @@ import {
     writeJson,
     writeYaml
 } from "./util";
-import FlowPlugin from './flow-plugin';
-import TemplatePlugin from './template-plugin';
-import RootPlugin from './root-plugin';
-import cpmCommands from './commands';
 import {existsSync} from "fs";
-import commands from "./commands";
+import cpmCommands from './commands';
+import plugins from "./plugins";
 
 const getNamespace = (data: any, namespace: string) => {
     return computeIfNotExist(data, namespace, {});
 }
 
-const loadDynamicPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
-                                 variables: Record<string, string>, secrets: Record<string, string>,
-                                 pluginRoot: string, pluginName: string) => {
+const loadDynamicPlugin = async (actions: Record<string, CommandAction>, commands: Record<string, CommandDef>,
+                                 config: Record<string, any>, variables: Record<string, string>,
+                                 secrets: Record<string, string>, pluginRoot: string, pluginName: string) => {
     const pluginPath = `${pluginRoot}/${pluginName}`;
 
     try {
         const pluginCreator = ((await import(pluginPath)).default as CPMPluginCreator);
-        await loadPlugin(actions, config, variables, secrets, pluginName, pluginCreator);
+        await loadPlugin(actions, commands, config, variables, secrets, pluginName, pluginCreator);
     } catch (err) {
         console.error(`error loading plugin ${pluginName}`);
         console.error(err);
     }
 }
 
-const loadPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
-                          variables: Record<string, string>, secrets: Record<string, string>,
-                          pluginName: string, pluginCreator: CPMPluginCreator) => {
+const loadPlugin = async (actions: Record<string, CommandAction>, commands: Record<string, CommandDef>,
+                          config: Record<string, any>, variables: Record<string, string>,
+                          secrets: Record<string, string>, pluginName: string,
+                          pluginCreator: CPMPluginCreator) => {
     const ctx: CPMContext = {
         config: Object.freeze(config),
         variables: getNamespace(variables, `plugin:${pluginName}`),
-        secrets: getNamespace(secrets, `plugin:${pluginName}`)
+        secrets: getNamespace(secrets, `plugin:${pluginName}`),
+        execute: (name, input) => {
+            const action = actions[name];
+            return action(input);
+        }
     }
 
     const plugin = await pluginCreator(ctx);
@@ -64,23 +66,6 @@ const loadPlugin = async (actions: Record<string, CommandAction>, config: Record
     Object.entries(plugin.commands || {}).forEach(([name, command]) => {
         commands[`${plugin.name} ${name}`] = command;
     });
-
-    Object.entries(plugin.actions).forEach(([name, action]) => {
-        actions[name] = async (input) => await action(ctx, input);
-    });
-}
-
-const loadRootPlugin = async (actions: Record<string, CommandAction>, config: Record<string, any>,
-                              variables: Record<string, string>, secrets: Record<string, string>) => {
-    const rootPluginName = 'root';
-
-    const ctx: CPMContext = {
-        config: Object.freeze(config),
-        variables: getNamespace(variables, `plugin:${rootPluginName}`),
-        secrets: getNamespace(secrets, `plugin:${rootPluginName}`)
-    }
-
-    const plugin = await RootPlugin(actions);
 
     Object.entries(plugin.actions).forEach(([name, action]) => {
         actions[name] = async (input) => await action(ctx, input);
@@ -172,23 +157,20 @@ const run = async () => {
     const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
 
-    // Register default plugins
-    await loadPlugin(actions, config, variables, secrets, 'template', TemplatePlugin);
-    await loadPlugin(actions, config, variables, secrets, 'flow', FlowPlugin);
+    // Register inbuilt plugins
+    for (const p of plugins) {
+        await loadPlugin(actions, commands, config, variables, secrets, p.name, p);
+    }
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        await loadDynamicPlugin(actions, config, variables, secrets, globalPluginRoot, p);
+        await loadDynamicPlugin(actions, commands, config, variables, secrets, globalPluginRoot, p);
     }
 
     // Register local plugins
     for (const p of (config?.plugins || [])) {
-        await loadDynamicPlugin(actions, config, variables, secrets, pluginRoot, p);
+        await loadDynamicPlugin(actions, commands, config, variables, secrets, pluginRoot, p);
     }
-
-    // Register root plugin
-    // Root plugin register at last
-    await loadRootPlugin(actions, config, variables, secrets);
 
     // Register global workflows
     const globalWorkflows: Record<string, Workflow> = config.globalWorkflows || [];

@@ -37,8 +37,12 @@ export const globalPluginRoot = `${globalFolderPath}/node_modules`;
 export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
 
 export const stepOutput = isProjectRepo
-    ? `${cwd}/.cpm/output.txt`
+    ? `${folderPath}/output.txt`
     : `${globalFolderPath}/output.txt`
+
+export const stepEnvironment = isProjectRepo
+    ? `${folderPath}/environment.txt`
+    : `${globalFolderPath}/environment.txt`
 
 function findCwd(startDir: string): string | null {
     let currentDir = startDir;
@@ -150,9 +154,6 @@ export const addMapKey = (map: any, key: string[], value: any): void => {
 }
 
 export const executeCommand = async (action: CommandAction, input: ActionInput, outputKeys: string[]) => {
-    // ensure output file is empty
-    fs.writeFileSync(stepOutput, '');
-
     if (action !== undefined) {
         const result = await action(input);
         const filteredResult: ActionOutput = {};
@@ -163,7 +164,7 @@ export const executeCommand = async (action: CommandAction, input: ActionInput, 
             outputKeyVal += `${key}=${value}\n`;
         }
 
-        fs.writeFileSync(stepOutput, outputKeyVal);
+        fs.appendFileSync(stepOutput, outputKeyVal);
         process.exit(0);
     } else {
         throw Error('command implementation not found');
@@ -173,6 +174,7 @@ export const executeCommand = async (action: CommandAction, input: ActionInput, 
 type WorkflowContext = {
     inputs: Record<string, any>,
     steps: Record<string, Record<string, any>>,
+    environment: Record<string, string | undefined>
 }
 
 export const parseString = (str: string, context: WorkflowContext): string => {
@@ -197,15 +199,38 @@ export const parseString = (str: string, context: WorkflowContext): string => {
 
 export const evaluateExpression = (expression: string, context: WorkflowContext): string => {
     const expressionTrimmed = expression.trim();
-    const {inputs, steps} = context;
+    const {
+        inputs,
+        steps,
+        environment
+    } = context;
     return eval(expressionTrimmed);
 }
 
-export const executeShellCommand = async (command: string, options?: { cwd?: string }) => {
-    console.log(command);
-    const newCwd = options?.cwd || process.cwd();
+export const readKeyValueTxt = (file: string): Record<string, string> => {
+    const result: Record<string, string> = {};
+    const lines = readFileSync(file, 'utf-8').split('\n');
+    for (const line of lines) {
+        const [key, value] = line.split('=');
+        if (key && value) {
+            result[key.trim()] = value.trim();
+        }
+    }
+    return result;
+}
 
+export const executeShellCommand = async (command: string, options?: {
+    cwd?: string,
+    environment?: Record<string, string | undefined>
+}) => {
+    console.log(command);
+
+    const newCwd = options?.cwd || process.cwd();
+    const newEnv = options?.environment || process.env;
+
+    // Make sure output and environment file empty before executing command
     writeFileSync(stepOutput, Buffer.from(''));
+    writeFileSync(stepEnvironment, Buffer.from(''));
 
     await new Promise<void>((resolve, reject) => {
         const child = spawn(command, [], {
@@ -213,9 +238,10 @@ export const executeShellCommand = async (command: string, options?: { cwd?: str
             shell: true,
             cwd: newCwd,
             env: {
-                ...process.env,
-                OUTPUT: stepOutput,
-                PARENT_PROCESS: process.pid.toString()
+                ...newEnv,
+                CPM_OUTPUT: stepOutput,
+                CPM_ENVIRONMENT: stepEnvironment,
+                CPM_PARENT_PROCESS: process.pid.toString()
             }
         });
 
@@ -232,17 +258,12 @@ export const executeShellCommand = async (command: string, options?: { cwd?: str
         });
     });
 
-    const result: Record<string, string> = {};
-    const lines = readFileSync(stepOutput, 'utf-8').split('\n');
-    for (const line of lines) {
-        const [key, value] = line.split('=');
-        if (key && value) {
-            result[key.trim()] = value.trim();
-        }
-    }
+    const result = readKeyValueTxt(stepOutput);
+    const environment = readKeyValueTxt(stepEnvironment);
 
     return {
-        result
+        result,
+        environment
     };
 }
 
@@ -337,13 +358,18 @@ export const createWorkflowCommand = (workflow: Workflow) => {
 export const runWorkflow = async (workflow: Workflow, input: ActionInput) => {
     const context: WorkflowContext = {
         inputs: input.options,
-        steps: {}
+        steps: {},
+        environment: {...process.env},
     }
 
     for (const s of workflow.steps) {
         const shellCmd = parseString(s.run, context);
-        const {result} = await executeShellCommand(shellCmd);
+        const {result, environment} = await executeShellCommand(shellCmd, {
+            cwd: cwd,
+            environment: context.environment
+        });
         addMapKey(context.steps, [s.id, 'outputs'], result);
+        context.environment = {...context.environment, ...environment};
     }
 
     // Enable nested workflow
@@ -381,7 +407,7 @@ export const autoSync = async (config: CPMConfig) => {
     // If cpm command executed inside auto sync then it will trigger infinite loop
     // Run auto sync only for parent cpm process
 
-    const parentProcess = process.env.PARENT_PROCESS;
+    const parentProcess = process.env.CPM_PARENT_PROCESS;
     if (parentProcess) {
         return;
     }
