@@ -203,7 +203,21 @@ const commands: Record<string, CommandDef> = {
         options: {
             "global": {
                 shortName: "g",
-                description: "install plugin globally"
+                description: "uninstall global plugin"
+            }
+        }
+    },
+    "plugin purge": {
+        description: "uninstall cpm plugin and remove all configuration",
+        arguments: {
+            "plugin": {
+                description: "plugin name"
+            }
+        },
+        options: {
+            "global": {
+                shortName: "g",
+                description: "purge global plugin"
             }
         }
     },

@@ -21,7 +21,7 @@ const taskStatus = {
 
 const flowEnable: Action = async (ctx, input) => {
     if (!isProjectRepo) {
-        console.log(chalk.red('not a project folder'));
+        console.log(chalk.red('please run this command inside a cpm project'));
         return {};
     }
 
@@ -30,21 +30,41 @@ const flowEnable: Action = async (ctx, input) => {
         return {};
     }
 
-    const config: { flow: any } = readYaml(configFilePath, {});
-    computeIfNotExist(config, 'flow', {});
-    config.flow.enabled = true;
-    writeYaml(configFilePath, config);
-    console.log(chalk.green('cpm flow enabled'));
+    console.log(chalk.yellow('Currently only github plugin fully support cpm flow. Others support is limited.'));
+    console.log(chalk.yellow('To support cpm flow your task manager (ex: ClickUp) should support following statuses for tasks. ' +
+        'You may need to create custom statuses to fulfill above requirement.'));
+    Object.values(taskStatus).forEach(s => {
+        console.log('|-- ' + chalk.yellow(s));
+    })
 
-    await executeShellCommand('cpm flow setup');
-    await executeShellCommand('cpm flow configure');
+    const answers: {
+        confirmation: string
+    } = await prompt([
+        {
+            type: 'list',
+            name: 'confirmation',
+            message: 'Do you wish to proceed:',
+            choices: ['Yes', 'No']
+        }
+    ]);
+
+    if (answers.confirmation === 'Yes') {
+        const config: { flow: any } = readYaml(configFilePath, {});
+        computeIfNotExist(config, 'flow', {});
+        config.flow.enabled = true;
+        writeYaml(configFilePath, config);
+        console.log(chalk.green('cpm flow enabled'));
+
+        await executeShellCommand('cpm flow setup');
+        await executeShellCommand('cpm flow configure');
+    }
 
     return {};
 };
 
 const flowConfigure: Action = async (ctx, input) => {
     if (!ctx.config.flow?.enabled) {
-        console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
+        console.log(chalk.yellow('cpm flow not enabled, please run: cpm flow enable'));
         return {};
     }
 
@@ -75,7 +95,7 @@ const flowConfigure: Action = async (ctx, input) => {
 
 const flowSetup: Action = async (ctx, input) => {
     if (!ctx.config.flow?.enabled) {
-        console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
+        console.log(chalk.yellow('cpm flow not enabled, please run: cpm flow enable'));
         return {};
     }
 
@@ -89,12 +109,12 @@ const flowSetup: Action = async (ctx, input) => {
 
 const flowCheckout: Action = async (ctx, input) => {
     if (!ctx.config.flow?.enabled) {
-        console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
+        console.log(chalk.yellow('cpm flow not enabled, please run: cpm flow enable'));
         return {};
     }
 
     if (!ctx.config.flow?.defaultBranch || !ctx.config.flow?.productionBranch) {
-        console.log(chalk.yellow('cpm flow not configured, please run cpm flow configure'));
+        console.log(chalk.yellow('cpm flow not configured, please run: cpm flow configure'));
         return {};
     }
 
@@ -155,12 +175,12 @@ const flowCheckout: Action = async (ctx, input) => {
 
 const flowSubmit: Action = async (ctx, input) => {
     if (!ctx.config.flow?.enabled) {
-        console.log(chalk.yellow('cpm flow not enabled, please run cpm flow enable'));
+        console.log(chalk.yellow('cpm flow not enabled, please run: cpm flow enable'));
         return {};
     }
 
     if (!ctx.config.flow?.defaultBranch || !ctx.config.flow?.productionBranch) {
-        console.log(chalk.yellow('cpm flow not configured, please run cpm flow configure'));
+        console.log(chalk.yellow('cpm flow not configured, please run: cpm flow configure'));
         return {};
     }
 

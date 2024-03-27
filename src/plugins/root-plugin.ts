@@ -177,6 +177,19 @@ const pluginRemove: Action = async (ctx, input) => {
             writeYaml(configFilePath, config);
         }
 
+        console.log(chalk.green('plugin removed'));
+    } else {
+        console.log(chalk.red('please run this command inside a cpm project'));
+    }
+
+    return {};
+}
+
+const pluginPurge: Action = async (ctx, input) => {
+    await pluginRemove(ctx, input);
+
+    const plugin = input.args.plugin;
+    if (isProjectRepo) {
         const variables = readJson(variablesFilePath, {});
         delete variables[plugin];
         writeJson(variablesFilePath, variables);
@@ -185,9 +198,7 @@ const pluginRemove: Action = async (ctx, input) => {
         delete secrets[plugin];
         writeJson(secretsFilePath, secrets);
 
-        console.log(chalk.green('plugin removed'));
-    } else {
-        console.log(chalk.red('please run this command inside a cpm project'));
+        console.log(chalk.green('plugin purged'));
     }
 
     return {};
@@ -216,6 +227,7 @@ const pluginInit: CPMPluginCreator = ctx => {
             "plugin list": pluginList,
             "plugin add": pluginAdd,
             "plugin remove": pluginRemove,
+            "plugin purge": pluginPurge,
             "plugin configure": pluginConfigure
         }
     }
