@@ -6,17 +6,18 @@ Click [here](https://github.com/new?template_name=cpm-plugin-gs&template_owner=C
 
 - **Clone repository:**
 ```bash
-cpm clone <url>
+cpm repo clone <url>
 ```
 
 - **Go to repository:**
 ```bash
-cd $(cpm find cpm-plugin-gs)
+cd $(cpm find <repo-name>)
 ```
 
-- **Setup repository:**
+- **Fill template repository with actual values:**
+Since this repo created from a template repository there are some variables which need user input before filling.
 ```bash
-cpm template fill
+cpm template parse
 ```
 
 ### Start development

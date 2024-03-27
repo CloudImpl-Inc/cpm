@@ -37,7 +37,21 @@ cpm plugin remove <plugin> [options]
 - `plugin`: Plugin name.
 
 **Options:**
-- `-g, --global`: Uninstall plugin globally.
+- `-g, --global`: Uninstall globally installed plugin.
+
+#### plugin purge
+
+Uninstall cpm plugin and remove all configuration.
+
+```bash
+cpm plugin purge <plugin>
+```
+
+**Arguments:**
+- `plugin`: Plugin name.
+
+**Options:**
+- `-g, --global`: Purge globally installed plugin.
 
 #### plugin configure
 
