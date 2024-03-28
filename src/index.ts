@@ -1,13 +1,14 @@
 export type CPMConfig = Record<string, any>;
 
-export type CPMVariables = Record<string, string>;
-
-export type CPMSecrets = Record<string, string>;
+export interface CPMKeyValueStore {
+    get(name: string): string;
+    set(name: string, value: string): void;
+}
 
 export type CPMContext = {
     config: CPMConfig,
-    variables: CPMVariables,
-    secrets: CPMSecrets,
+    variables: CPMKeyValueStore,
+    secrets: CPMKeyValueStore,
     execute: (action: string, input: ActionInput) => ActionOutput | Promise<ActionOutput>
 }
 

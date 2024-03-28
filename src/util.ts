@@ -134,7 +134,9 @@ export const computeIfNotExist = (map: any, key: string, value: any | ((k: strin
 }
 
 export const getMapKey = (map: any, key: string[]): any => {
-    if (key.length == 1) {
+    if (!map) {
+        return undefined;
+    } else if (key.length == 1) {
         return map[key[0]];
     } else {
         const m = map[key[0]];
@@ -150,6 +152,16 @@ export const addMapKey = (map: any, key: string[], value: any): void => {
         const m = computeIfNotExist(map, key[0], {});
         key.shift();
         addMapKey(m, key, value);
+    }
+}
+
+export const removeMapKey = (map: any, key: string[]): void => {
+    if (key.length == 1) {
+        delete map[key[0]];
+    } else if (map) {
+        const m = map[key[0]];
+        key.shift();
+        removeMapKey(m, key);
     }
 }
 
@@ -423,6 +435,29 @@ export const autoSync = async (config: CPMConfig) => {
             writeFileSync(hashFilePath, Buffer.from(fileHash));
             console.log(chalk.green('cpm project synced automatically'))
         }
+    }
+}
+
+export class FileBasedKeyValueStore {
+
+    constructor(private file: string, private namespace: string) {
+    }
+
+    get(key: string): string {
+        const map = readJson(this.file, {});
+        return getMapKey(map, [...this.namespace.split('.'), ...key.split('.')])
+    };
+
+    set(key: string, value: any): void {
+        const map = readJson(this.file, {});
+        addMapKey(map, [...this.namespace.split('.'), ...key.split('.')], value);
+        writeJson(this.file, map);
+    };
+
+    remove(key: string): void {
+        const map = readJson(this.file, {});
+        removeMapKey(map, [...this.namespace.split('.'), ...key.split('.')]);
+        writeJson(this.file, map);
     }
 }
 

@@ -3,38 +3,31 @@ import {Action, CommandDef, CPMContext, CPMPluginCreator, Workflow} from ".";
 import {
     autoSync,
     CommandAction,
-    computeIfNotExist,
     configFilePath, convertFlatToTree, createFile,
     createFolder, createWorkflowCommand,
-    defaultProjectsRootPath, folderPath,
+    defaultProjectsRootPath, FileBasedKeyValueStore, folderPath,
     globalConfigFilePath,
     globalFolderPath, globalPackageJsonFile,
     globalPluginRoot,
     globalSecretsFilePath, globalVariablesFilePath,
     isProjectRepo, packageJsonFile, parseCommand,
     pluginRoot,
-    readJson,
     readYaml, runWorkflow,
     secretsFilePath, TreeNode, variablesFilePath,
-    writeJson,
     writeYaml
 } from "./util";
 import {existsSync} from "fs";
 import cpmCommands from './commands';
 import plugins from "./plugins";
 
-const getNamespace = (data: any, namespace: string) => {
-    return computeIfNotExist(data, namespace, {});
-}
-
 const loadDynamicPlugin = async (actions: Record<string, CommandAction>, commands: Record<string, CommandDef>,
-                                 config: Record<string, any>, variables: Record<string, string>,
-                                 secrets: Record<string, string>, pluginRoot: string, pluginName: string) => {
+                                 config: Record<string, any>, variablesFile: string, secretsFile: string,
+                                 pluginRoot: string, pluginName: string) => {
     const pluginPath = `${pluginRoot}/${pluginName}`;
 
     try {
         const pluginCreator = ((await import(pluginPath)).default as CPMPluginCreator);
-        await loadPlugin(actions, commands, config, variables, secrets, pluginName, pluginCreator);
+        await loadPlugin(actions, commands, config, variablesFile, secretsFile, pluginName, pluginCreator);
     } catch (err) {
         console.error(`error loading plugin ${pluginName}`);
         console.error(err);
@@ -42,13 +35,12 @@ const loadDynamicPlugin = async (actions: Record<string, CommandAction>, command
 }
 
 const loadPlugin = async (actions: Record<string, CommandAction>, commands: Record<string, CommandDef>,
-                          config: Record<string, any>, variables: Record<string, string>,
-                          secrets: Record<string, string>, pluginName: string,
-                          pluginCreator: CPMPluginCreator) => {
+                          config: Record<string, any>, variablesFile: string, secretsFile: string,
+                          pluginName: string, pluginCreator: CPMPluginCreator) => {
     const ctx: CPMContext = {
         config: Object.freeze(config),
-        variables: getNamespace(variables, `plugin:${pluginName}`),
-        secrets: getNamespace(secrets, `plugin:${pluginName}`),
+        variables: new FileBasedKeyValueStore(variablesFile, `plugin:${pluginName}`),
+        secrets: new FileBasedKeyValueStore(secretsFile, `plugin:${pluginName}`),
         execute: (name, input) => {
             const action = actions[name];
             return action(input);
@@ -105,6 +97,7 @@ const run = async () => {
         .version(version)
         .description("CloudImpl project manager | Your partner in project managing");
 
+    // Add global files
     createFolder(globalFolderPath);
     createFile(globalPackageJsonFile, '{}');
 
@@ -117,32 +110,21 @@ const run = async () => {
         writeYaml(globalConfigFilePath, initialConfig);
     }
 
-    // Add global package.json
-    if (!existsSync(`${globalFolderPath}/package.json`)) {
-        writeJson(`${globalFolderPath}/package.json`, {});
+    if (isProjectRepo) {
+        createFolder(folderPath);
+        createFile(packageJsonFile, '{}');
     }
 
+    // Generate merged config
     const globalConfig: Record<string, any> = readYaml(globalConfigFilePath, {});
     globalConfig.globalPlugins = globalConfig.plugins;
     delete globalConfig.plugins;
     globalConfig.globalWorkflows = globalConfig.workflows;
     delete globalConfig.workflows;
 
-    const globalVariables: Record<string, string> = readJson(globalVariablesFilePath, {});
-    const globalSecrets: Record<string, string> = readJson(globalSecretsFilePath, {});
-
-    let localConfig: Record<string, any> = {};
-    let localVariables: Record<string, string> = {};
-    let localSecrets: Record<string, string> = {};
-
-    if (isProjectRepo) {
-        createFolder(folderPath);
-        createFile(packageJsonFile, '{}');
-
-        localConfig = readYaml(configFilePath, {});
-        localVariables = readJson(variablesFilePath, {});
-        localSecrets = readJson(secretsFilePath, {});
-    }
+    const localConfig: Record<string, any> = isProjectRepo
+        ? readYaml(configFilePath, {})
+        : {};
 
     const config: Record<string, any> = {};
     Object.assign(config, globalConfig);
@@ -151,25 +133,25 @@ const run = async () => {
     // Try to auto sync project
     await autoSync(config);
 
-    const variables = isProjectRepo ? localVariables : globalVariables;
-    const secrets = isProjectRepo ? localSecrets : globalSecrets;
+    const variablesFile = isProjectRepo ? variablesFilePath : globalVariablesFilePath;
+    const secretsFile = isProjectRepo ? secretsFilePath : globalSecretsFilePath;
 
     const commands: Record<string, CommandDef> = cpmCommands;
     const actions: Record<string, CommandAction> = {};
 
     // Register inbuilt plugins
     for (const p of plugins) {
-        await loadPlugin(actions, commands, config, variables, secrets, p.name, p);
+        await loadPlugin(actions, commands, config, variablesFile, secretsFile, p.name, p.creator);
     }
 
     // Register global plugins
     for (const p of (config?.globalPlugins || [])) {
-        await loadDynamicPlugin(actions, commands, config, variables, secrets, globalPluginRoot, p);
+        await loadDynamicPlugin(actions, commands, config, variablesFile, secretsFile, globalPluginRoot, p);
     }
 
     // Register local plugins
     for (const p of (config?.plugins || [])) {
-        await loadDynamicPlugin(actions, commands, config, variables, secrets, pluginRoot, p);
+        await loadDynamicPlugin(actions, commands, config, variablesFile, secretsFile, pluginRoot, p);
     }
 
     // Register global workflows
@@ -194,16 +176,7 @@ const run = async () => {
         program.addCommand(command);
     }
 
-    const cleanup = () => {
-        writeJson(globalVariablesFilePath, globalVariables);
-        writeJson(globalSecretsFilePath, globalSecrets);
-        if (isProjectRepo) {
-            writeJson(variablesFilePath, localVariables);
-            writeJson(secretsFilePath, localSecrets);
-        }
-    }
-
-    process.on('exit', cleanup);
+    // process.on('exit', cleanup);
 
     program
         .on('command:*', function () {
