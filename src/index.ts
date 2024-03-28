@@ -3,6 +3,7 @@ export type CPMConfig = Record<string, any>;
 export interface CPMKeyValueStore {
     get(name: string): string;
     set(name: string, value: string): void;
+    remove(name: string): void;
 }
 
 export type CPMContext = {

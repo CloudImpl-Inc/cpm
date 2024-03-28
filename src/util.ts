@@ -1,5 +1,5 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
-import {ActionInput, ActionOutput, CommandDef, CPMConfig, Workflow} from "./index";
+import {ActionInput, ActionOutput, CommandDef, CPMConfig, CPMKeyValueStore, Workflow} from "./index";
 import {Command} from "commander";
 import {spawn} from "child_process";
 import yaml from "js-yaml";
@@ -438,7 +438,7 @@ export const autoSync = async (config: CPMConfig) => {
     }
 }
 
-export class FileBasedKeyValueStore {
+export class FileBasedKeyValueStore implements CPMKeyValueStore{
 
     constructor(private file: string, private namespace: string) {
     }
