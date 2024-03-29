@@ -8,7 +8,7 @@ if [ "$1" = "goto" ]; then
         output_file=$(mktemp)
 
         # Execute the cpmjs find command and redirect its output to the specified output file
-        env CPM_OUTPUT="$output_file" cpmjs find "$2" || exit
+        env CPM_OUTPUT="$output_file" cpmjs goto "$2" || return
 
         # Read the output file and set environment variables
         while IFS='=' read -r key value || [ -n "$key" ]; do
@@ -17,19 +17,15 @@ if [ "$1" = "goto" ]; then
             fi
         done < "$output_file"
 
-        if [ -z "$repo_path" ]; then
-            echo "error: 'path' value not found in output"
-            exit 1
+        if [ -n "${repo_path+x}" ] && [ "${repo_path}" != "undefined" ]; then
+            cd "$repo_path" || return
         fi
-
-        # Change directory to the output of the cpmjs find command
-        cd "$repo_path" || exit
 
         # Remove the temporary output file
         rm "$output_file"
     else
-        echo "error: missing required argument 'path'"
-        exit 1
+        # Show cpm error message
+        cpmjs goto
     fi
 else
     # Run your Node.js CLI tool with arguments passed to the wrapper script

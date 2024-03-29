@@ -13,7 +13,7 @@ import {
     isProjectRepo, packageJsonFile, parseCommand,
     pluginRoot,
     readYaml, runWorkflow,
-    secretsFilePath, setAliases, TreeNode, variablesFilePath,
+    secretsFilePath, TreeNode, variablesFilePath,
     writeYaml
 } from "./util";
 import {existsSync} from "fs";

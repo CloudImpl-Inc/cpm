@@ -1,4 +1,4 @@
-import {Action, ActionOutput, CPMConfig, CPMPluginCreator} from "../index";
+import {Action, CPMConfig, CPMPluginCreator} from "../index";
 import {appendFileSync, readdirSync} from "fs";
 import {
     computeIfNotExist,
@@ -65,7 +65,6 @@ const goTo: Action = async (ctx, input) => {
             const path = `${repoDir.path}/${repoDir.name}`;
 
             if (orgDir.isDirectory() && repoNameFull.toLowerCase().includes(query.toLowerCase())) {
-                console.log(path);
                 filtered.push({id: path, name: `${org}/${repo}`, org, repo, path});
             }
         }
