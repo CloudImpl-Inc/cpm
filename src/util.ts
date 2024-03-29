@@ -1,13 +1,15 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, ActionOutput, CommandDef, CPMConfig, CPMKeyValueStore, Workflow} from "./index";
 import {Command} from "commander";
-import {spawn} from "child_process";
+import {execSync, spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from 'crypto';
 import chalk from "chalk";
+import inquirer from "inquirer";
+import prompt = inquirer.prompt;
 
 export const cwd = findCwd(process.cwd()) || process.cwd();
 
@@ -36,13 +38,17 @@ export const globalPluginRoot = `${globalFolderPath}/node_modules`;
 
 export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
 
-export const stepOutput = isProjectRepo
-    ? `${folderPath}/output.txt`
-    : `${globalFolderPath}/output.txt`
+export const stepOutput = process.env.CPM_OUTPUT
+    ? process.env.CPM_OUTPUT
+    : isProjectRepo
+        ? `${folderPath}/output.txt`
+        : `${globalFolderPath}/output.txt`
 
-export const stepEnvironment = isProjectRepo
-    ? `${folderPath}/environment.txt`
-    : `${globalFolderPath}/environment.txt`
+export const stepEnvironment = process.env.CPM_ENVIRONMENT
+    ? process.env.CPM_ENVIRONMENT
+    : isProjectRepo
+        ? `${folderPath}/environment.txt`
+        : `${globalFolderPath}/environment.txt`
 
 function findCwd(startDir: string): string | null {
     let currentDir = startDir;
@@ -166,6 +172,12 @@ export const removeMapKey = (map: any, key: string[]): void => {
 }
 
 export const executeCommand = async (action: CommandAction, input: ActionInput, outputKeys: string[]) => {
+    if (!process.env.CPM_PARENT_PROCESS) {
+        // If not invoked by parent process clear output before execution
+        writeFileSync(stepOutput, '');
+        writeFileSync(stepEnvironment, '');
+    }
+
     if (action !== undefined) {
         const result = await action(input);
         const filteredResult: ActionOutput = {};
@@ -438,7 +450,60 @@ export const autoSync = async (config: CPMConfig) => {
     }
 }
 
-export class FileBasedKeyValueStore implements CPMKeyValueStore{
+// Function to determine the shell
+const getShell = (): 'zsh' | 'bash' => {
+    const shellPath: string = process.env.SHELL || '';
+    return shellPath.includes('zsh') ? 'zsh' : 'bash';
+};
+
+// Function to set aliases
+export const setAliases = async (): Promise<void> => {
+    try {
+        // Determine the shell
+        const shell: 'zsh' | 'bash' = getShell();
+
+        // Determine the shell startup file
+        const startupFile: string = shell === 'zsh' ? `${os.homedir()}/.zshrc` : `${os.homedir()}/.bashrc`;
+        createFile(startupFile, '');
+
+        // Check if cpm alias already exists in the shell startup file
+        const startupContent: string = fs.readFileSync(startupFile, 'utf-8');
+        if (!startupContent.includes('alias cpm=')) {
+            // Determine the full path of the cpm command
+            const cpmPath: string = execSync('command -v cpm').toString().trim();
+            fs.appendFileSync(startupFile, `alias cpm="source ${cpmPath}"\n`);
+
+            console.log(chalk.green('alias added cpm="source <script-location>", ' +
+                'this will make sure cpm cd command work as expected'));
+            console.log(chalk.yellow('restart terminal to use cpm cd command'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+};
+
+export const getSelection = async (message: string, list: { id: string, name: string }[]) => {
+    const options: string[] = [];
+    const idMapping: Record<string, string> = {};
+
+    list.forEach(w => {
+        options.push(w.name);
+        idMapping[w.name] = w.id;
+    })
+
+    const answers: { selection: string } = await prompt([
+        {
+            type: 'list',
+            name: 'selection',
+            message: message,
+            choices: options
+        }
+    ]);
+
+    return idMapping[answers.selection];
+}
+
+export class FileBasedKeyValueStore implements CPMKeyValueStore {
 
     constructor(private file: string, private namespace: string) {
     }

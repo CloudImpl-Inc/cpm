@@ -17,7 +17,8 @@ import {
     syncProject,
     variablesFilePath,
     writeJson,
-    writeYaml
+    writeYaml,
+    getSelection
 } from "../util";
 import chalk from 'chalk';
 
@@ -47,26 +48,42 @@ const init: Action = async (ctx, input) => {
     return {};
 };
 
-const find: Action = (ctx, input): ActionOutput => {
+const goTo: Action = async (ctx, input) => {
     const {query} = input.args;
+    const filtered: {id: string, name: string, org: string, repo: string, path: string}[] = [];
 
     for (const orgDir of readdirSync(ctx.config.rootDir, {withFileTypes: true})) {
         if (!orgDir.isDirectory()) {
             continue;
         }
 
+        const org = orgDir.name;
+
         for (const repoDir of readdirSync(`${orgDir.path}/${orgDir.name}`, {withFileTypes: true})) {
+            const repo = repoDir.name;
+            const repoNameFull = `${orgDir.name}/${repoDir.name}`;
             const path = `${repoDir.path}/${repoDir.name}`;
 
-            if (orgDir.isDirectory() && path.toLowerCase().endsWith(query.toLowerCase())) {
-                const [org, repo] = path.split('/').slice(-2);
+            if (orgDir.isDirectory() && repoNameFull.toLowerCase().includes(query.toLowerCase())) {
                 console.log(path);
-                return {org, repo, path};
+                filtered.push({id: path, name: `${org}/${repo}`, org, repo, path});
             }
         }
     }
 
-    return {};
+    if (filtered.length === 0) {
+        console.log(chalk.red('repository not found'));
+        return {};
+    } else if (filtered.length === 1) {
+        const result = filtered[0];
+        console.log(chalk.green(result.path));
+        return result;
+    } else {
+        const selection = await getSelection('Select repository:', filtered);
+        const result = filtered.find(f => f.id === selection)!;
+        console.log(chalk.green(result.path));
+        return result;
+    }
 };
 
 const list: Action = (ctx, input) => {
@@ -221,7 +238,7 @@ const pluginInit: CPMPluginCreator = ctx => {
         name: "root",
         actions: {
             "init": init,
-            "find": find,
+            "goto": goTo,
             "list": list,
             "sync": sync,
             "plugin list": pluginList,

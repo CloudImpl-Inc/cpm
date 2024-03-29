@@ -13,7 +13,7 @@ import {
     isProjectRepo, packageJsonFile, parseCommand,
     pluginRoot,
     readYaml, runWorkflow,
-    secretsFilePath, TreeNode, variablesFilePath,
+    secretsFilePath, setAliases, TreeNode, variablesFilePath,
     writeYaml
 } from "./util";
 import {existsSync} from "fs";
@@ -94,6 +94,7 @@ const run = async () => {
     const version = await loadLibVersion();
 
     const program = new Command()
+        .name('cpm')
         .version(version)
         .description("CloudImpl project manager | Your partner in project managing");
 

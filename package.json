@@ -9,11 +9,12 @@
     "dist"
   ],
   "bin": {
-    "cpm": "./dist/bin/cpm.js"
+    "cpm": "./dist/bin/cpm.sh",
+    "cpmjs": "./dist/bin/cpm.js"
   },
   "scripts": {
     "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-    "build": "tsup"
+    "build": "tsup && cp src/bin/cpm.sh ./dist/bin/"
   },
   "keywords": [
     "cli",

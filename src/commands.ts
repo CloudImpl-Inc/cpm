@@ -7,11 +7,11 @@ const commands: Record<string, CommandDef> = {
     "list": {
         description: "list projects"
     },
-    "find": {
-        description: "find repository cloned path. this will output first found repository with search pattern",
+    "goto": {
+        description: "go to project folder",
         arguments: {
             "query": {
-                description: "pattern to search ex: cpm find Cloudimpl-Inc/cpm"
+                description: "pattern to search ex: cpm goto cpm"
             }
         },
         outputs: {
