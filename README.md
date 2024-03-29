@@ -12,9 +12,16 @@
 - **Community-driven:** We believe in the power of community collaboration. **cpm** is an open-source project, and we welcome contributions from developers around the world. Together, we can continue to improve and evolve **cpm** to meet the needs of modern software development teams.
 
 ## Installation
-- Simply run `npm i -g @cloudimpl-inc/cpm`
-- Then install git plugin globally with `cpm plugin add -g @cloudimpl-inc/cpm-git`
-- That's it, welcome to hassle-free project management
+### With install script
+- Simply run `curl -sSL <URL> -o script.sh && chmod +x script.sh && ./script.sh`
+>Note: You can review the script content before execution if you want 
+
+### Manual install
+- Install cpm with `npm i -g @cloudimpl-inc/cpm`
+- Then add cpm git plugin globally with `cpm plugin add -g @cloudimpl-inc/cpm-git`
+- Copy output of this command `command -v cpm`
+- Create alias to above command `alias cpm="source <output_of_above_command>"`
+>Note: Creating this alias will make cpm goto <path> command work as expected
 
 ## Available plugins
 - [Official plugins](https://cloudimpl-inc.github.io/cpm-plugin-pack/)
