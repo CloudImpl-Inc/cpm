@@ -13,7 +13,7 @@
 
 ## Installation
 ### With install script
-- Simply run `curl -sSL <URL> -o script.sh && chmod +x script.sh && ./script.sh`
+- Simply run `curl -sSL https://raw.githubusercontent.com/CloudImpl-Inc/cpm/main/install.sh -o script.sh && chmod +x script.sh && ./script.sh`
 >Note: You can review the script content before execution if you want 
 
 ### Manual install
