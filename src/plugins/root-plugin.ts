@@ -36,11 +36,9 @@ const init: Action = async (ctx, input) => {
 
         createFile(gitIgnoreFilePath, '');
         appendFileSync(gitIgnoreFilePath,
-            '# cpm\n' +
+            '\n# cpm\n' +
             '.cpm/node_modules\n' +
-            '.cpm/state.hash\n' +
-            '.cpm/output.txt\n' +
-            '.cpm/secrets.json\n',
+            '.cpm/_*\n',
         )
 
         console.log(chalk.green('cpm project initialized'));

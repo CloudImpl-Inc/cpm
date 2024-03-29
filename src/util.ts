@@ -1,7 +1,7 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {ActionInput, ActionOutput, CommandDef, CPMConfig, CPMKeyValueStore, Workflow} from "./index";
 import {Command} from "commander";
-import {execSync, spawn} from "child_process";
+import {spawn} from "child_process";
 import yaml from "js-yaml";
 import * as os from "os";
 import * as fs from "fs";
@@ -22,10 +22,10 @@ export const folderPath = `${cwd}/.cpm`;
 export const configFilePath = `${cwd}/cpm.yml`;
 export const packageJsonFile = `${folderPath}/package.json`;
 export const variablesFilePath = `${folderPath}/variables.json`;
-export const secretsFilePath = `${folderPath}/secrets.json`;
+export const secretsFilePath = `${folderPath}/_secrets.json`;
 export const pluginRoot = `${folderPath}/node_modules`;
 export const gitIgnoreFilePath = `${cwd}/.gitignore`;
-export const hashFilePath = `${folderPath}/state.hash`;
+export const hashFilePath = `${folderPath}/_state.hash`;
 
 export const isProjectRepo = existsSync(configFilePath);
 
@@ -33,7 +33,7 @@ export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
 export const globalPackageJsonFile = `${globalFolderPath}/package.json`;
 export const globalVariablesFilePath = `${globalFolderPath}/variables.json`;
-export const globalSecretsFilePath = `${globalFolderPath}/secrets.json`;
+export const globalSecretsFilePath = `${globalFolderPath}/_secrets.json`;
 export const globalPluginRoot = `${globalFolderPath}/node_modules`;
 
 export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
@@ -41,14 +41,14 @@ export const defaultProjectsRootPath = `${os.homedir()}/CPMProjects`;
 export const stepOutput = process.env.CPM_OUTPUT
     ? process.env.CPM_OUTPUT
     : isProjectRepo
-        ? `${folderPath}/output.txt`
-        : `${globalFolderPath}/output.txt`
+        ? `${folderPath}/_output.txt`
+        : `${globalFolderPath}/_output.txt`
 
 export const stepEnvironment = process.env.CPM_ENVIRONMENT
     ? process.env.CPM_ENVIRONMENT
     : isProjectRepo
-        ? `${folderPath}/environment.txt`
-        : `${globalFolderPath}/environment.txt`
+        ? `${folderPath}/_environment.txt`
+        : `${globalFolderPath}/_environment.txt`
 
 function findCwd(startDir: string): string | null {
     let currentDir = startDir;
