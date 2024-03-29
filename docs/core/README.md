@@ -16,12 +16,12 @@ List projects.
 cpm list
 ```
 
-#### find
+#### goto
 
-Find repository cloned path. This will output the first found repository with the search pattern.
+Go to project folder. If there are multiple repositories available for given query this will prompt user to select.
 
 ```bash
-cpm find <query>
+cpm goto <query>
 ```
 
 **Arguments:**
