@@ -15,8 +15,8 @@
 >Note: For Windows users, when working with shell scripts or command-line tools, it's often recommended to use Linux-like environments such as Git Bash or Windows Subsystem for Linux (WSL).:
 
 ### With install script
-- Simply run `curl -sSL https://raw.githubusercontent.com/CloudImpl-Inc/cpm/main/install.sh -o script.sh && chmod +x script.sh && ./script.sh`
->Note: You can review the script content before execution if you want 
+- Simply run `source <(curl -sSL https://raw.githubusercontent.com/CloudImpl-Inc/cpm/main/install.sh)`
+>Note: To review script before execution view [install.sh](https://raw.githubusercontent.com/CloudImpl-Inc/cpm/main/install.sh) 
 
 ### Manual install
 - Install cpm with `npm i -g @cloudimpl-inc/cpm`
