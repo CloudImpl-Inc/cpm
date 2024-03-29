@@ -12,6 +12,8 @@
 - **Community-driven:** We believe in the power of community collaboration. **cpm** is an open-source project, and we welcome contributions from developers around the world. Together, we can continue to improve and evolve **cpm** to meet the needs of modern software development teams.
 
 ## Installation
+>Note: For Windows users, when working with shell scripts or command-line tools, it's often recommended to use Linux-like environments such as Git Bash or Windows Subsystem for Linux (WSL).:
+
 ### With install script
 - Simply run `curl -sSL https://raw.githubusercontent.com/CloudImpl-Inc/cpm/main/install.sh -o script.sh && chmod +x script.sh && ./script.sh`
 >Note: You can review the script content before execution if you want 
