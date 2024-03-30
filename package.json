@@ -1,6 +1,6 @@
 {
   "name": "@cloudimpl-inc/cpm",
-  "version": "2.31.1",
+  "version": "2.32.0",
   "description": "CloudImpl Project Manager",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -14,7 +14,9 @@
   },
   "scripts": {
     "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-    "build": "tsup && cp src/bin/cpm.sh ./dist/bin/"
+    "copy:resources": "cp -r ./src/resources ./dist/",
+    "copy:executable": "cp src/bin/cpm.sh ./dist/bin/",
+    "build": "tsup && npm run copy:executable && npm run copy:resources"
   },
   "keywords": [
     "cli",

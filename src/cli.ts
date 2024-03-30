@@ -17,8 +17,8 @@ import {
     writeYaml
 } from "./util";
 import {existsSync} from "fs";
-import cpmCommands from './commands';
 import plugins from "./plugins";
+import path from "path";
 
 const loadDynamicPlugin = async (actions: Record<string, CommandAction>, commands: Record<string, CommandDef>,
                                  config: Record<string, any>, variablesFile: string, secretsFile: string,
@@ -137,7 +137,9 @@ const run = async () => {
     const variablesFile = isProjectRepo ? variablesFilePath : globalVariablesFilePath;
     const secretsFile = isProjectRepo ? secretsFilePath : globalSecretsFilePath;
 
-    const commands: Record<string, CommandDef> = cpmCommands;
+    // Load commands from yml
+    const commandsFilePath = path.join(__dirname, 'resources/commands.yml');
+    const commands: Record<string, CommandDef> = readYaml(commandsFilePath, '');
     const actions: Record<string, CommandAction> = {};
 
     // Register inbuilt plugins
