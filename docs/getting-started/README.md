@@ -13,7 +13,7 @@ cpm repo clone <repository-url>
 
 - **Navigate to the repository directory:**
 ```bash
-cd $(cpm find <org-name/repo-name>)
+cpm goto <repo-name>
 ```
 
 #### Initialize cpm support

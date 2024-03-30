@@ -11,13 +11,13 @@ cpm repo clone <url>
 
 - **Go to repository:**
 ```bash
-cd $(cpm find <repo-name>)
+cpm goto <repo-name>
 ```
 
 - **Fill template repository with actual values:**
 Since this repo created from a template repository there are some variables which need user input before filling.
 ```bash
-cpm template parse
+cpm template fill
 ```
 
 ### Start development
