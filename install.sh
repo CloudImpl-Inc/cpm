@@ -2,7 +2,7 @@
 
 # Function to install @cloudimpl-inc/cpm npm package globally
 installCpmPackage() {
-    npm install -g @cloudimpl-inc/cpm
+    sudo npm install -g @cloudimpl-inc/cpm
 }
 
 # Function to add cpm-git plugin globally
@@ -16,44 +16,29 @@ installAndConfigureCpm() {
     addCpmGitPlugin
 }
 
-# Function to determine the shell
-getShell() {
-    local shellPath
-    shellPath="${SHELL:-}"
-    if [[ "$shellPath" == *"zsh"* ]]; then
-        echo "zsh"
-    else
-        echo "bash"
-    fi
-}
-
 # Function to set aliases
 setAliases() {
-    local shell startupFile cpmPath
+    local startupFiles=("$HOME/.bashrc" "$HOME/.zshrc")
+    local cpmPath
 
-    # Determine the shell
-    shell=$(getShell)
+    # Check if cpm alias already exists in any of the shell startup files
+    for startupFile in "${startupFiles[@]}"; do
+        # Create the file if it doesn't exist
+        touch "$startupFile"
 
-    # Determine the shell startup file
-    if [[ "$shell" == "zsh" ]]; then
-        startupFile="$HOME/.zshrc"
-    else
-        startupFile="$HOME/.bashrc"
-    fi
+        if ! grep -q "alias cpm=" "$startupFile"; then
+            # Determine the full path of the cpm command
+            cpmPath=$(command -v cpm)
 
-    # Check if cpm alias already exists in the shell startup file
-    if ! grep -q "alias cpm=" "$startupFile"; then
-        # Determine the full path of the cpm command
-        cpmPath=$(command -v cpm)
+            # Append the alias for cpm to the shell startup file
+            echo "alias cpm=\"source $cpmPath\"" >> "$startupFile"
 
-        # Append the alias for cpm to the shell startup file
-        echo "alias cpm=\"source $cpmPath\"" >> "$startupFile"
-
-        echo -e "\033[0;32mAlias added: cpm=\"source $cpmPath\""
-        echo -e "\033[0;33mRestart your terminal to use the 'cpm' command.\033[0m"
-    else
-        echo "Alias 'cpm' already exists in $startupFile"
-    fi
+            echo -e "\033[0;32mAlias added: cpm=\"source $cpmPath\" to $startupFile"
+            echo -e "\033[0;33mRestart your terminal to use the 'cpm' command.\033[0m"
+        else
+            echo "Alias 'cpm' already exists in $startupFile"
+        fi
+    done
 }
 
 # Call the function to install and configure @cloudimpl-inc/cpm
