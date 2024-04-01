@@ -21,7 +21,7 @@ cpm project list
 Clone a repository to the root directory configured in ctx.config.rootDir.
 
 ```bash
-cpm repo clone <url>
+cpm project clone <url>
 ```
 
 **Arguments:**
@@ -53,5 +53,5 @@ cpm project goto <query>
 Sync project.
 
 ```bash
-cpm prtoject sync
+cpm project sync
 ```

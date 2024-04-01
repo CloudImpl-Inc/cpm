@@ -8,19 +8,19 @@ To get started with the project, follow these steps:
 
 - **Clone the repository:**
 ```bash
-cpm repo clone <repository-url>
+cpm project clone <repository-url>
 ```
 
 - **Navigate to the repository directory:**
 ```bash
-cpm goto <repo-name>
+cpm project goto <repo-name>
 ```
 
 #### Initialize cpm support
 
 - **Initialize cpm**
 ```bash
-cpm init
+cpm project init
 ```
 
 - **Add required plugins:**
