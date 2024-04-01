@@ -68,7 +68,7 @@ const clone: Action = async (ctx, input): Promise<ActionOutput> => {
         return {org, repo, path: repoDir};
     }
 
-    await executeShellCommand(`cpm repo clone ${url} ${repoDir}`);
+    await executeShellCommand(`cpm repo clone ${url} -d ${repoDir}`);
     return {org, repo, path: repoDir};
 }
 
