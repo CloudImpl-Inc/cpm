@@ -93,6 +93,18 @@ export const createFile = (path: string, def: string | (() => string)) => {
     }
 }
 
+export const readFile = (path: string, def: string | (() => string)) => {
+    if (existsSync(path)) {
+        return readFileSync(path).toString();
+    } else {
+        if (typeof def === 'function') {
+            return def();
+        } else {
+            return def;
+        }
+    }
+}
+
 export const readJson = (path: string, def: any | (() => any)): any => {
     if (existsSync(path)) {
         const data = readFileSync(path);
@@ -423,7 +435,7 @@ export const calculateFilesMD5Sync = (filePaths: string[]): string => {
     try {
         const hash = crypto.createHash('md5');
         for (const filePath of filePaths) {
-            const fileData = fs.readFileSync(filePath);
+            const fileData = Buffer.from(readFile(filePath, ''));
             hash.update(fileData);
         }
         return hash.digest('hex');
@@ -444,9 +456,7 @@ export const autoSync = async (config: CPMConfig) => {
     if (isProjectRepo) {
         const files = [configFilePath, variablesFilePath, packageLockJsonFile];
         const fileHash = calculateFilesMD5Sync(files).trim();
-        const savedHash = (existsSync(hashFilePath))
-            ? readFileSync(hashFilePath).toString().trim()
-            : '';
+        const savedHash = readFile(hashFilePath, '');
 
         if (fileHash !== savedHash) {
             await syncProject(config);
