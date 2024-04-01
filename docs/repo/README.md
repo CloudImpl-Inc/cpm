@@ -2,19 +2,17 @@
 
 #### repo clone
 
-Clone a git repository to the root directory configured in ctx.config.rootDir.
+Clone a repository.
 
 ```bash
 cpm repo clone <url>
 ```
 
 **Arguments:**
-- `url`: URL of the git repository.
+- `url`: URL of the repository.
 
-**Outputs:**
-- `org`: Organization name extracted from URL.
-- `repo`: Repository name extracted from URL.
-- `path`: Locally cloned directory.
+**Options:**
+- `-d, --destination <destination>`: Destination to clone (optional).
 
 #### repo checkout
 

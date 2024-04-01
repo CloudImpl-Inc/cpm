@@ -1,10 +1,70 @@
-init:
+plugin list:
+  description: "list plugin versions"
+  options:
+    global:
+      shortName: "g"
+      description: "list global plugin versions"
+
+plugin add:
+  description: "install cpm plugin"
+  arguments:
+    plugin:
+      description: "plugin name"
+  options:
+    global:
+      shortName: "g"
+      description: "install plugin globally"
+
+plugin remove:
+  description: "uninstall cpm plugin"
+  arguments:
+    plugin:
+      description: "plugin name"
+  options:
+    global:
+      shortName: "g"
+      description: "uninstall global plugin"
+
+plugin purge:
+  description: "uninstall cpm plugin and remove all configuration"
+  arguments:
+    plugin:
+      description: "plugin name"
+  options:
+    global:
+      shortName: "g"
+      description: "purge global plugin"
+
+plugin configure:
+  description: "configure cpm plugin"
+  arguments:
+    plugin:
+      description: "plugin name"
+  options:
+    global:
+      shortName: "g"
+      description: "install plugin globally"
+
+project init:
   description: "initialized cpm project"
 
-list:
-  description: "list projects"
+project list:
+  description: "list projects for current folder"
 
-goto:
+project clone:
+  description: "clone cpm project"
+  arguments:
+    url:
+      description: "url of the repository"
+  outputs:
+    org:
+      description: "organization name extracted from url"
+    repo:
+      description: "repo name extracted from url"
+    path:
+      description: "locally cloned directory"
+
+project goto:
   description: "go to project folder"
   arguments:
     query:
@@ -17,8 +77,27 @@ goto:
     path:
       description: "locally cloned directory"
 
-sync:
-  description: "sync project (sync plugins)"
+project sync:
+  description: "sync project"
+
+flow enable:
+  description: "enable cpm flow"
+
+flow configure:
+  description: "configure cpm flow"
+
+flow setup:
+  description: "make repository ready to use cpm flow (every new clone should run this)"
+
+flow checkout:
+  description: "checkout issue to start development"
+  options:
+    taskId:
+      shortName: "t"
+      description: "task id to checkout"
+
+flow submit:
+  description: "create pr for issue for current working issue"
 
 template fill:
   description: "read files and prompt user to enter value for placeholder and fill"
@@ -87,13 +166,11 @@ repo clone:
   arguments:
     url:
       description: "url of the git repository"
-  outputs:
-    org:
-      description: "organization name extracted from url"
-    repo:
-      description: "repo name extracted from url"
-    path:
-      description: "locally cloned directory"
+  options:
+    destination:
+      shortName: "d"
+      description: "destination to clone repository"
+      valueRequired: true
 
 repo checkout:
   description: "checkout branch inside git repository. if branch not exist create branch from default branch and update default branch from upstream before creating new branch"
@@ -121,69 +198,3 @@ pr create:
       description: "head branch name"
     base:
       description: "base branch name"
-
-plugin list:
-  description: "list plugin versions"
-  options:
-    global:
-      shortName: "g"
-      description: "list global plugin versions"
-
-plugin add:
-  description: "install cpm plugin"
-  arguments:
-    plugin:
-      description: "plugin name"
-  options:
-    global:
-      shortName: "g"
-      description: "install plugin globally"
-
-plugin remove:
-  description: "uninstall cpm plugin"
-  arguments:
-    plugin:
-      description: "plugin name"
-  options:
-    global:
-      shortName: "g"
-      description: "uninstall global plugin"
-
-plugin purge:
-  description: "uninstall cpm plugin and remove all configuration"
-  arguments:
-    plugin:
-      description: "plugin name"
-  options:
-    global:
-      shortName: "g"
-      description: "purge global plugin"
-
-plugin configure:
-  description: "configure cpm plugin"
-  arguments:
-    plugin:
-      description: "plugin name"
-  options:
-    global:
-      shortName: "g"
-      description: "install plugin globally"
-
-flow enable:
-  description: "enable cpm flow"
-
-flow configure:
-  description: "configure cpm flow"
-
-flow setup:
-  description: "make repository ready to use cpm flow (every new clone should run this)"
-
-flow checkout:
-  description: "checkout issue to start development"
-  options:
-    taskId:
-      shortName: "t"
-      description: "task id to checkout"
-
-flow submit:
-  description: "create pr for issue for current working issue"

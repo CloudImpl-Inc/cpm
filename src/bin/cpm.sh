@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Check if the first argument is 'goto'
-if [ "$1" = "goto" ]; then
-    # If 'goto' command is provided, change directory
-    if [ $# -gt 1 ]; then
+# Check if the first and second arguments are 'project' and 'goto'
+if [ "$1" = "project" ] && [ "$2" = "goto" ]; then
+    # If 'project' and 'goto' commands are provided, continue with the rest of the script
+    if [ $# -gt 2 ]; then
         # Define the output file path using the CPM_OUTPUT environment variable
         output_file=$(mktemp)
 
         # Execute the cpmjs find command and redirect its output to the specified output file
-        env CPM_OUTPUT="$output_file" cpmjs goto "$2" || return
+        env CPM_OUTPUT="$output_file" cpmjs project goto "$3" || return
 
         # Read the output file and set environment variables
         while IFS='=' read -r key value || [ -n "$key" ]; do
@@ -25,7 +25,7 @@ if [ "$1" = "goto" ]; then
         rm "$output_file"
     else
         # Show cpm error message
-        cpmjs goto
+        cpmjs project goto
     fi
 else
     # Run your Node.js CLI tool with arguments passed to the wrapper script

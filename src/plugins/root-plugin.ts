@@ -1,105 +1,14 @@
-import {Action, CPMConfig, CPMPluginCreator} from "../index";
-import {appendFileSync, readdirSync} from "fs";
+import {Action, CPMPluginCreator} from "../index";
 import {
-    computeIfNotExist,
-    configFilePath,
-    createFile,
-    createFolder,
+    computeIfNotExist, configFilePath,
     executeShellCommand,
     folderPath,
-    gitIgnoreFilePath,
     globalConfigFilePath,
     globalFolderPath,
-    isProjectRepo,
-    readJson,
-    readYaml,
-    secretsFilePath,
-    syncProject,
-    variablesFilePath,
-    writeJson,
-    writeYaml,
-    getSelection
+    isProjectRepo, readJson,
+    readYaml, secretsFilePath, variablesFilePath, writeJson, writeYaml
 } from "../util";
-import chalk from 'chalk';
-
-const init: Action = async (ctx, input) => {
-    if (isProjectRepo) {
-        console.log(chalk.yellow('already initialized'));
-    } else {
-        const config: CPMConfig = {
-            plugins: []
-        }
-        writeYaml(configFilePath, config);
-
-        createFolder(folderPath);
-        writeJson(`${folderPath}/package.json`, {});
-
-        createFile(gitIgnoreFilePath, '');
-        appendFileSync(gitIgnoreFilePath,
-            '\n# cpm\n' +
-            '.cpm/node_modules\n' +
-            '.cpm/_*\n',
-        )
-
-        console.log(chalk.green('cpm project initialized'));
-    }
-    return {};
-};
-
-const goTo: Action = async (ctx, input) => {
-    const {query} = input.args;
-    const filtered: {id: string, name: string, org: string, repo: string, path: string}[] = [];
-
-    for (const orgDir of readdirSync(ctx.config.rootDir, {withFileTypes: true})) {
-        if (!orgDir.isDirectory()) {
-            continue;
-        }
-
-        const org = orgDir.name;
-
-        for (const repoDir of readdirSync(`${orgDir.path}/${orgDir.name}`, {withFileTypes: true})) {
-            const repo = repoDir.name;
-            const repoNameFull = `${orgDir.name}/${repoDir.name}`;
-            const path = `${repoDir.path}/${repoDir.name}`;
-
-            if (orgDir.isDirectory() && repoNameFull.toLowerCase().includes(query.toLowerCase())) {
-                filtered.push({id: path, name: `${org}/${repo}`, org, repo, path});
-            }
-        }
-    }
-
-    if (filtered.length === 0) {
-        console.log(chalk.red('repository not found'));
-        return {};
-    } else if (filtered.length === 1) {
-        const result = filtered[0];
-        console.log(chalk.green(result.path));
-        return result;
-    } else {
-        const selection = await getSelection('Select repository:', filtered);
-        const result = filtered.find(f => f.id === selection)!;
-        console.log(chalk.green(result.path));
-        return result;
-    }
-};
-
-const list: Action = (ctx, input) => {
-    readdirSync(ctx.config.rootDir, {withFileTypes: true})
-        .filter(orgDir => orgDir.isDirectory())
-        .forEach(orgDir => {
-            console.log(`|--${orgDir.name}`)
-            readdirSync(`${orgDir.path}/${orgDir.name}`, {withFileTypes: true})
-                .filter(repoDir => repoDir.isDirectory())
-                .forEach(repoDir => console.log(`|  |--${repoDir.name} => ${repoDir.path}/${repoDir.name}`))
-        })
-
-    return {};
-};
-
-const sync: Action = async (ctx, input) => {
-    await syncProject(ctx.config);
-    return {};
-};
+import chalk from "chalk";
 
 const pluginList: Action = async (ctx, input) => {
     if (input.options.global) {
@@ -234,10 +143,6 @@ const pluginInit: CPMPluginCreator = ctx => {
     return {
         name: "root",
         actions: {
-            "init": init,
-            "goto": goTo,
-            "list": list,
-            "sync": sync,
             "plugin list": pluginList,
             "plugin add": pluginAdd,
             "plugin remove": pluginRemove,

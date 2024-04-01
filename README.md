@@ -34,13 +34,13 @@
 - To start using cpm, follow the [getting started](docs/getting-started) guide. Get your projects organized and managed efficiently in no time!
 
 ## Commands
-- [cpm](docs/core)
+- [cpm plugin](docs/plugin)
+- [cpm project](docs/project)
+- [cpm flow](docs/flow)
 - [cpm template](docs/template)
 - [cpm repo](docs/repo)
 - [cpm task](docs/task)
 - [cpm pr](docs/pr)
-- [cpm plugin](docs/plugin)
-- [cpm flow](docs/flow)
 
 ## Workflow management
 To start using workflows, follow the [workflow](docs/workflow) guide. Streamline your processes effortlessly with automation—unlocking more time for what truly matters.
