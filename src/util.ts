@@ -21,6 +21,7 @@ if (cwd !== process.cwd()) {
 export const folderPath = `${cwd}/.cpm`;
 export const configFilePath = `${cwd}/cpm.yml`;
 export const packageJsonFile = `${folderPath}/package.json`;
+export const packageLockJsonFile = `${folderPath}/package-lock.json`;
 export const variablesFilePath = `${folderPath}/variables.json`;
 export const secretsFilePath = `${folderPath}/_secrets.json`;
 export const pluginRoot = `${folderPath}/node_modules`;
@@ -32,6 +33,7 @@ export const isProjectRepo = existsSync(configFilePath);
 export const globalFolderPath = `${os.homedir()}/.cpm`;
 export const globalConfigFilePath = `${globalFolderPath}/cpm.yml`;
 export const globalPackageJsonFile = `${globalFolderPath}/package.json`;
+export const globalPackageLockJsonFile = `${globalFolderPath}/package-lock.json`;
 export const globalVariablesFilePath = `${globalFolderPath}/variables.json`;
 export const globalSecretsFilePath = `${globalFolderPath}/_secrets.json`;
 export const globalPluginRoot = `${globalFolderPath}/node_modules`;
@@ -417,10 +419,13 @@ export const syncProject = async (config: CPMConfig) => {
     }
 }
 
-export const calculateFileMD5Sync = (filePath: string): string => {
+export const calculateFilesMD5Sync = (filePaths: string[]): string => {
     try {
-        const fileData = fs.readFileSync(filePath);
-        const hash = crypto.createHash('md5').update(fileData);
+        const hash = crypto.createHash('md5');
+        for (const filePath of filePaths) {
+            const fileData = fs.readFileSync(filePath);
+            hash.update(fileData);
+        }
         return hash.digest('hex');
     } catch (error) {
         throw new Error(`Error calculating MD5 hash: ${error}`);
@@ -437,7 +442,8 @@ export const autoSync = async (config: CPMConfig) => {
     }
 
     if (isProjectRepo) {
-        const fileHash = calculateFileMD5Sync(configFilePath).trim();
+        const files = [configFilePath, variablesFilePath, packageLockJsonFile];
+        const fileHash = calculateFilesMD5Sync(files).trim();
         const savedHash = (existsSync(hashFilePath))
             ? readFileSync(hashFilePath).toString().trim()
             : '';
@@ -449,12 +455,6 @@ export const autoSync = async (config: CPMConfig) => {
         }
     }
 }
-
-// Function to determine the shell
-const getShell = (): 'zsh' | 'bash' => {
-    const shellPath: string = process.env.SHELL || '';
-    return shellPath.includes('zsh') ? 'zsh' : 'bash';
-};
 
 export const getSelection = async (message: string, list: { id: string, name: string }[]) => {
     const options: string[] = [];
