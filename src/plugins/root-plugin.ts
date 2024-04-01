@@ -114,11 +114,11 @@ const pluginPurge: Action = async (ctx, input) => {
     const plugin = input.args.plugin;
     if (isProjectRepo) {
         const variables = readJson(variablesFilePath, {});
-        delete variables[plugin];
+        delete variables[`plugin:${plugin}`];
         writeJson(variablesFilePath, variables);
 
         const secrets = readJson(secretsFilePath, {});
-        delete secrets[plugin];
+        delete secrets[`plugin:${plugin}`];
         writeJson(secretsFilePath, secrets);
 
         console.log(chalk.green('plugin purged'));

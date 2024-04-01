@@ -176,10 +176,10 @@ export const addMapKey = (map: any, key: string[], value: any): void => {
 }
 
 export const removeMapKey = (map: any, key: string[]): void => {
-    if (key.length == 1) {
-        if (map.hasOwnProperty(key[0])) {
-            delete map[key[0]];
-        }
+    if (!map) {
+        return;
+    } else if (key.length == 1) {
+        delete map[key[0]];
     } else if (map) {
         const m = map[key[0]];
         key.shift();
