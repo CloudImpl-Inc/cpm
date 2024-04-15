@@ -3,6 +3,7 @@ import path from "path";
 import {Action, CPMContext, CPMPlugin} from "../index";
 import {computeIfNotExist, configFilePath, cwd, executeShellCommand, isProjectRepo, readYaml, writeYaml} from "../util";
 import prepareCommitMsg from "../git-hooks/prepare-commit-msg";
+import packageJson from "../git-hooks/package.json";
 import chalk from 'chalk';
 import inquirer from "inquirer";
 import prompt = inquirer.prompt;
@@ -100,8 +101,9 @@ const flowSetup: Action = async (ctx, input) => {
     }
 
     if (existsSync(path.join(cwd, '.git', 'hooks'))) {
-        fs.writeFileSync(path.join(cwd, '.git', 'hooks', 'prepare-commit-msg'), prepareCommitMsg)
-        await executeShellCommand(`chmod +x ${cwd}/.git/hooks/*`)
+        fs.writeFileSync(path.join(cwd, '.git', 'hooks', 'package.json'), packageJson);
+        fs.writeFileSync(path.join(cwd, '.git', 'hooks', 'prepare-commit-msg'), prepareCommitMsg);
+        await executeShellCommand(`chmod +x ${cwd}/.git/hooks/*`);
     }
 
     return {};
